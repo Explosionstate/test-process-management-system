@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>软件测试过程管理与缺陷跟踪系统</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <div class="space-bg" aria-hidden="true">
+    <span class="orb orb-a"></span>
+    <span class="orb orb-b"></span>
+    <span class="orb orb-c"></span>
+    <span class="nebula-line line-a"></span>
+    <span class="nebula-line line-b"></span>
+    <span class="comet comet-a"></span>
+    <span class="comet comet-b"></span>
+    <div class="stars"></div>
+  </div>
+
+  <div id="loader" class="loader">
+    <div class="curve-loader">
+      <span></span><span></span><span></span><span></span><span></span>
+    </div>
+    <p>正在同步测试过程数据</p>
+  </div>
+
+  <main class="shell">
+    <section class="hero glass">
+      <div>
+        <p class="eyebrow">Quality Orbit Console</p>
+        <h1>软件测试过程管理与缺陷跟踪系统</h1>
+        <p class="hero-copy">以测试计划、用例执行、缺陷流转和质量报表构成可追踪闭环，让项目质量状态像星图一样清晰。</p>
+        <div class="hero-actions">
+          <button onclick="createDefect()">提交示例缺陷</button>
+          <button class="ghost" onclick="load()">刷新仪表盘</button>
+        </div>
+      </div>
+      <div class="orbit-card">
+        <div class="orbit-ring ring-one"></div>
+        <div class="orbit-ring ring-two"></div>
+        <div class="planet"></div>
+        <div class="satellite satellite-a"></div>
+        <div class="satellite satellite-b"></div>
+        <div class="math-wave">
+          <i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+        </div>
+        <span>Defect Flow</span>
+      </div>
+    </section>
+
+    <section class="metrics" id="report"></section>
+
+    <section class="flow glass">
+      <div class="section-heading">
+        <p>Defect Lifecycle</p>
+        <h2>缺陷状态轨道</h2>
+      </div>
+      <div class="flow-track">
+        <article><span>01</span><strong>新建</strong><small>测试提交</small></article>
+        <article><span>02</span><strong>已分配</strong><small>责任确认</small></article>
+        <article><span>03</span><strong>修复中</strong><small>开发处理</small></article>
+        <article><span>04</span><strong>待验证</strong><small>测试回归</small></article>
+        <article><span>05</span><strong>已关闭</strong><small>质量确认</small></article>
+        <article><span>06</span><strong>重新打开</strong><small>问题复现</small></article>
+      </div>
+    </section>
+
+    <section class="workspace">
+      <article class="panel glass plans-panel">
+        <div class="panel-title">
+          <div>
+            <p>Test Plans</p>
+            <h2>测试计划</h2>
+          </div>
+          <button class="compact" onclick="createPlan()">新增计划</button>
+        </div>
+        <div id="plans" class="list"></div>
+      </article>
+
+      <article class="panel glass cases-panel">
+        <div class="panel-title">
+          <div>
+            <p>Test Cases</p>
+            <h2>测试用例</h2>
+          </div>
+          <button class="compact" onclick="createCase()">新增用例</button>
+        </div>
+        <div id="cases" class="list"></div>
+      </article>
+
+      <article class="panel glass defects-panel">
+        <div class="panel-title">
+          <div>
+            <p>Defect Board</p>
+            <h2>缺陷跟踪</h2>
+          </div>
+          <button class="compact" onclick="createDefect()">提交缺陷</button>
+        </div>
+        <div id="defects" class="defect-grid"></div>
+      </article>
+    </section>
+  </main>
+
+  <div id="toast" class="toast"></div>
+
+  <script>
+    const statusMeta = {
+      NEW: ['新建', 'violet'],
+      ASSIGNED: ['已分配', 'blue'],
+      FIXING: ['修复中', 'amber'],
+      PENDING_VERIFY: ['待验证', 'cyan'],
+      CLOSED: ['已关闭', 'green'],
+      REOPENED: ['重新打开', 'rose']
+    };
+
+    const api = (path, options = {}) => fetch(path, {
+      headers: {'Content-Type': 'application/json'},
+      ...options
+    }).then(async response => {
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || '请求失败');
+      return data;
+    });
+
+    async function load() {
+      toggleLoader(true);
+      try {
+        const [report, plans, cases, defects] = await Promise.all([
+          api('/api/report'), api('/api/plans'), api('/api/cases'), api('/api/defects')
+        ]);
+        renderReport(report);
+        renderPlans(plans);
+        renderCases(cases);
+        renderDefects(defects);
+      } finally {
+        setTimeout(() => toggleLoader(false), 250);
+      }
+    }
+
+    function renderReport(report) {
+      const items = [
+        ['测试计划', report.planCount, '个', 'radial-gradient(circle, #7c3aed, #2e1065)'],
+        ['测试用例', report.caseCount, '条', 'radial-gradient(circle, #06b6d4, #164e63)'],
+        ['测试通过率', report.passRate, '%', 'radial-gradient(circle, #22c55e, #14532d)'],
+        ['缺陷总数', report.defectCount, '个', 'radial-gradient(circle, #f97316, #7c2d12)']
+      ];
+      document.getElementById('report').innerHTML = items.map(([label, value, unit, bg]) => `
+        <article class="metric glass" style="--metric-bg:${bg}">
+          <span>${label}</span>
+          <strong>${value}<em>${unit}</em></strong>
+          <i></i>
+        </article>
+      `).join('');
+    }
+
+    function renderPlans(rows) {
+      document.getElementById('plans').innerHTML = rows.map(row => `
+        <article class="item-card">
+          <div class="item-top"><strong>${row.name}</strong><span>${row.status}</span></div>
+          <p>${row.objective || '暂无测试目标'}</p>
+          <small>负责人：${row.owner || '未指定'} · 范围：${row.scope || '未填写'}</small>
+        </article>
+      `).join('');
+    }
+
+    function renderCases(rows) {
+      document.getElementById('cases').innerHTML = rows.map(row => `
+        <article class="item-card case-${row.result}">
+          <div class="item-top"><strong>${row.title}</strong><span>${row.result}</span></div>
+          <p>${row.module} · 预期：${row.expected || '未填写'}</p>
+          <small>实际：${row.actual || '未执行'} · 所属计划 #${row.planId}</small>
+        </article>
+      `).join('');
+    }
+
+    function renderDefects(rows) {
+      document.getElementById('defects').innerHTML = rows.map(row => {
+        const [label, tone] = statusMeta[row.status] || [row.statusLabel, 'blue'];
+        return `
+          <article class="defect-card ${tone}">
+            <div class="defect-head">
+              <span>#${row.id}</span>
+              <b>${row.module || '未分类'}</b>
+            </div>
+            <h3>${row.title}</h3>
+            <p>${row.steps || '暂无复现步骤'}</p>
+            <div class="defect-meta">
+              <span>严重：${row.severity}</span>
+              <span>优先：${row.priority}</span>
+              <span>负责人：${row.owner}</span>
+            </div>
+            <div class="defect-actions">
+              <span class="status ${tone}">${label}</span>
+              <div>${transitionButtons(row)}</div>
+            </div>
+          </article>
+        `;
+      }).join('');
+    }
+
+    function transitionButtons(row) {
+      const next = {
+        NEW: [['ASSIGNED', '分配']],
+        ASSIGNED: [['FIXING', '开始修复']],
+        FIXING: [['PENDING_VERIFY', '提交验证']],
+        PENDING_VERIFY: [['CLOSED', '关闭'], ['REOPENED', '重开']],
+        REOPENED: [['FIXING', '继续修复']]
+      }[row.status] || [];
+      return next.map(([status, label]) => `<button class="mini" onclick="transitionDefect(${row.id}, '${status}')">${label}</button>`).join('') || '<small>流程结束</small>';
+    }
+
+    async function createPlan() {
+      await runAction(() => api('/api/plans', {method: 'POST', body: JSON.stringify({name: '回归测试计划', objective: '验证缺陷修复后的核心流程', scope: '缺陷模块、报表模块', owner: '项目经理', status: '进行中'})}), '已新增测试计划');
+    }
+
+    async function createCase() {
+      await runAction(() => api('/api/cases', {method: 'POST', body: JSON.stringify({planId: '1', module: '缺陷模块', title: '缺陷关闭后不允许再次流转', steps: '关闭缺陷后尝试修改状态', expected: '系统拒绝非法流转', actual: '待验证', result: '未执行'})}), '已新增测试用例');
+    }
+
+    async function createDefect() {
+      await runAction(() => api('/api/defects', {method: 'POST', body: JSON.stringify({title: '统计报表缺陷状态数量显示异常', module: '统计报表', severity: '中', priority: '中', steps: '进入统计报表页面查看状态分布', expected: '显示各状态数量', actual: '数量为空', owner: '未分配'})}), '已提交缺陷');
+    }
+
+    async function transitionDefect(id, status) {
+      await runAction(() => api(`/api/defects/${id}/transition`, {method: 'POST', body: JSON.stringify({status, operator: '项目成员', owner: status === 'ASSIGNED' ? '开发人员' : '', note: '页面操作流转'})}), '缺陷状态已流转');
+    }
+
+    async function runAction(action, message) {
+      try {
+        await action();
+        toast(message);
+        load();
+      } catch (error) {
+        toast(error.message, true);
+      }
+    }
+
+    function toggleLoader(show) {
+      document.getElementById('loader').classList.toggle('hidden', !show);
+    }
+
+    function toast(message, error = false) {
+      const el = document.getElementById('toast');
+      el.textContent = message;
+      el.className = `toast show ${error ? 'error' : ''}`;
+      setTimeout(() => el.className = 'toast', 2200);
+    }
+
+    load();
+  </script>
+</body>
+</html>

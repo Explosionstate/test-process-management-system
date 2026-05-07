@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>软件测试过程管理与缺陷跟踪系统</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <div class="space-bg" aria-hidden="true">
+    <span class="orb orb-a"></span><span class="orb orb-b"></span><span class="orb orb-c"></span>
+    <span class="nebula-line line-a"></span><span class="nebula-line line-b"></span>
+    <span class="comet comet-a"></span><span class="comet comet-b"></span><div class="stars"></div>
+  </div>
+
+  <section id="loginView" class="login-shell">
+    <article class="login-card glass">
+      <div class="curve-loader"><span></span><span></span><span></span><span></span><span></span></div>
+      <p class="eyebrow">RBAC Login</p>
+      <h1>质量轨道控制台</h1>
+      <p>使用本地 MySQL 账号登录，系统会按角色控制菜单、按钮和缺陷流转权限。</p>
+      <form id="loginForm" class="form-grid one">
+        <label>用户名<input name="username" value="admin" required></label>
+        <label>密码<input name="password" type="password" value="password" required></label>
+        <button>进入系统</button>
+      </form>
+      <small>默认账号：admin / pm / testlead / tester / dev / qa，密码均为 password。</small>
+    </article>
+  </section>
+
+  <main id="appView" class="shell hidden">
+    <section class="hero glass">
+      <div>
+        <p class="eyebrow">Quality Orbit Console</p>
+        <h1>软件测试过程管理与缺陷跟踪系统</h1>
+        <p class="hero-copy">测试计划、用例、任务、缺陷、报告全部接入 MySQL；登录 RBAC 控制真实业务操作。</p>
+        <div class="hero-actions">
+          <button data-perm="defect:create" onclick="openModal('defectModal')">提交缺陷</button>
+          <button data-perm="plan:create" class="ghost" onclick="openModal('planModal')">创建计划</button>
+          <button class="ghost" onclick="logout()">退出</button>
+        </div>
+        <p id="userInfo" class="user-info"></p>
+      </div>
+      <div class="orbit-card">
+        <div class="orbit-ring ring-one"></div><div class="orbit-ring ring-two"></div><div class="planet"></div>
+        <div class="satellite satellite-a"></div><div class="satellite satellite-b"></div>
+        <div class="math-wave"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><span>Defect Flow</span>
+      </div>
+    </section>
+
+    <section class="metrics" id="metrics"></section>
+
+    <section class="flow glass">
+      <div class="section-heading"><p>Defect Lifecycle</p><h2>缺陷状态轨道</h2></div>
+      <div class="flow-track">
+        <article><span>01</span><strong>新建</strong><small>测试提交</small></article>
+        <article><span>02</span><strong>已分配</strong><small>责任确认</small></article>
+        <article><span>03</span><strong>修复中</strong><small>开发处理</small></article>
+        <article><span>04</span><strong>待验证</strong><small>测试回归</small></article>
+        <article><span>05</span><strong>已关闭</strong><small>质量确认</small></article>
+        <article><span>06</span><strong>重新打开</strong><small>问题复现</small></article>
+      </div>
+    </section>
+
+    <nav class="tabs glass">
+      <button class="active" onclick="switchTab('plans', this)">测试计划</button>
+      <button onclick="switchTab('cases', this)">测试用例</button>
+      <button onclick="switchTab('tasks', this)">测试任务</button>
+      <button onclick="switchTab('defects', this)">缺陷跟踪</button>
+      <button onclick="switchTab('reports', this)">测试报告</button>
+      <button data-perm="user:manage" onclick="switchTab('users', this)">用户权限</button>
+    </nav>
+
+    <section id="plans" class="panel glass tab-panel active"><div class="panel-title"><div><p>Plans</p><h2>测试计划</h2></div><button data-perm="plan:create" class="compact" onclick="openModal('planModal')">新增</button></div><div id="planList" class="list"></div></section>
+    <section id="cases" class="panel glass tab-panel"><div class="panel-title"><div><p>Cases</p><h2>测试用例</h2></div><button data-perm="case:create" class="compact" onclick="openModal('caseModal')">新增</button></div><div id="caseList" class="list"></div></section>
+    <section id="tasks" class="panel glass tab-panel"><div class="panel-title"><div><p>Tasks</p><h2>测试任务</h2></div><button data-perm="task:assign" class="compact" onclick="openModal('taskModal')">分配任务</button></div><div id="taskList" class="list"></div></section>
+    <section id="defects" class="panel glass tab-panel"><div class="panel-title"><div><p>Defects</p><h2>缺陷跟踪</h2></div><button data-perm="defect:create" class="compact" onclick="openModal('defectModal')">提交缺陷</button></div><div class="filters"><select id="defectStatus" onchange="loadDefects()"><option value="">全部状态</option><option value="NEW">新建</option><option value="ASSIGNED">已分配</option><option value="FIXING">修复中</option><option value="PENDING_VERIFY">待验证</option><option value="CLOSED">已关闭</option><option value="REOPENED">重新打开</option></select><input id="defectModule" placeholder="按模块筛选" oninput="loadDefects()"></div><div id="defectList" class="defect-grid"></div></section>
+    <section id="reports" class="panel glass tab-panel"><div class="panel-title"><div><p>Reports</p><h2>测试报告</h2></div><button data-perm="report:view" class="compact" onclick="loadReport()">生成报告</button></div><div id="reportBox" class="report-box"></div></section>
+    <section id="users" class="panel glass tab-panel"><div class="panel-title"><div><p>RBAC</p><h2>用户权限</h2></div><button data-perm="user:manage" class="compact" onclick="openModal('userModal')">新增用户</button></div><div id="userList" class="list"></div></section>
+  </main>
+
+  <div id="planModal" class="modal"><form class="modal-card glass" onsubmit="submitPlan(event)"><h2>创建测试计划</h2><div class="form-grid"><label>名称<input name="name" required></label><label>负责人ID<input name="ownerId" type="number" value="3"></label><label>状态<input name="status" value="进行中"></label><label>开始日期<input name="startDate" type="date"></label><label>结束日期<input name="endDate" type="date"></label><label class="wide">测试目标<textarea name="objective"></textarea></label><label class="wide">测试范围<textarea name="scopeText"></textarea></label></div><div class="modal-actions"><button>保存</button><button type="button" class="ghost" onclick="closeModal('planModal')">取消</button></div></form></div>
+  <div id="caseModal" class="modal"><form class="modal-card glass" onsubmit="submitCase(event)"><h2>新增测试用例</h2><div class="form-grid"><label>计划ID<input name="planId" type="number" value="1" required></label><label>模块<input name="module" required></label><label>标题<input name="title" required></label><label>执行人ID<input name="executorId" type="number" value="4"></label><label>结果<select name="result"><option>未执行</option><option>通过</option><option>失败</option><option>阻塞</option></select></label><label class="wide">步骤<textarea name="steps"></textarea></label><label class="wide">预期结果<textarea name="expected"></textarea></label><label class="wide">实际结果<textarea name="actual"></textarea></label></div><div class="modal-actions"><button>保存</button><button type="button" class="ghost" onclick="closeModal('caseModal')">取消</button></div></form></div>
+  <div id="taskModal" class="modal"><form class="modal-card glass" onsubmit="submitTask(event)"><h2>分配测试任务</h2><div class="form-grid"><label>计划ID<input name="planId" type="number" value="1" required></label><label>用例ID<input name="caseId" type="number"></label><label>标题<input name="title" required></label><label>负责人ID<input name="assigneeId" type="number" value="4" required></label><label>状态<input name="status" value="待处理"></label><label>截止日期<input name="dueDate" type="date"></label></div><div class="modal-actions"><button>保存</button><button type="button" class="ghost" onclick="closeModal('taskModal')">取消</button></div></form></div>
+  <div id="defectModal" class="modal"><form class="modal-card glass" onsubmit="submitDefect(event)"><h2>提交缺陷</h2><div class="form-grid"><label>标题<input name="title" required></label><label>模块<input name="module" required></label><label>严重程度<select name="severity"><option>低</option><option selected>中</option><option>高</option><option>严重</option></select></label><label>优先级<select name="priority"><option>低</option><option>中</option><option selected>高</option></select></label><label>负责人ID<input name="ownerId" type="number"></label><label class="wide">复现步骤<textarea name="steps"></textarea></label><label class="wide">期望结果<textarea name="expected"></textarea></label><label class="wide">实际结果<textarea name="actual"></textarea></label></div><div class="modal-actions"><button>提交</button><button type="button" class="ghost" onclick="closeModal('defectModal')">取消</button></div></form></div>
+  <div id="userModal" class="modal"><form class="modal-card glass" onsubmit="submitUser(event)"><h2>新增用户</h2><div class="form-grid"><label>用户名<input name="username" required></label><label>密码<input name="password" type="password" required></label><label>姓名<input name="realName" required></label><label>角色ID<input name="roleId" type="number" value="4"></label></div><div class="modal-actions"><button>保存</button><button type="button" class="ghost" onclick="closeModal('userModal')">取消</button></div></form></div>
+
+  <div id="toast" class="toast"></div>
+  <script src="/app.js"></script>
+</body>
+</html>
