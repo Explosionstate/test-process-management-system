@@ -1,6 +1,15 @@
 let currentUser = null;
 const statusLabels = {NEW:'新建',ASSIGNED:'已分配',FIXING:'修复中',PENDING_VERIFY:'待验证',CLOSED:'已关闭',REOPENED:'重新打开'};
 const statusTones = {NEW:'violet',ASSIGNED:'blue',FIXING:'amber',PENDING_VERIFY:'cyan',CLOSED:'green',REOPENED:'rose'};
+const pageMeta = {
+  plans: {title: '测试计划', description: '围绕测试生命周期进行统一规划、执行与缺陷闭环。'},
+  cases: {title: '测试用例', description: '集中维护用例信息、执行结果与预期对齐情况。'},
+  tasks: {title: '测试任务', description: '按计划分配执行任务，跟踪处理状态和截止时间。'},
+  defects: {title: '缺陷跟踪', description: '集中查看缺陷状态、责任人和流转动作。'},
+  reports: {title: '测试报告', description: '汇总用例执行和缺陷状态，生成测试结论。'},
+  users: {title: '用户权限', description: '查看用户、角色和权限分配情况。'}
+};
+const THEME_KEY = 'tpt-theme';
 
 const api = async (path, options = {}) => {
   const response = await fetch(path, {credentials:'same-origin', headers:{'Content-Type':'application/json'}, ...options});
@@ -14,6 +23,8 @@ if ('serviceWorker' in navigator) {
     registrations.forEach(registration => registration.unregister());
   });
 }
+
+applyTheme(loadTheme());
 
 document.getElementById('loginForm').addEventListener('submit', async event => {
   event.preventDefault();
@@ -29,6 +40,7 @@ async function initApp() {
   document.getElementById('appView').classList.remove('hidden');
   document.getElementById('userInfo').textContent = `${currentUser.realName} · ${currentUser.roles.join(' / ')}`;
   applyPermissions();
+  setActiveNav(document.querySelector('.nav-item.active') || document.querySelector('.nav-item'));
   await Promise.all([loadDashboard(), loadPlans(), loadCases(), loadTasks(), loadDefects(), loadUsers()]);
 }
 
@@ -55,23 +67,177 @@ async function logout() {
 
 async function loadDashboard() {
   const data = await api('/api/dashboard');
-  const items = [['测试计划',data.planCount,'个'],['测试用例',data.caseCount,'条'],['测试通过率',data.passRate,'%'],['缺陷总数',data.defectCount,'个']];
-  document.getElementById('metrics').innerHTML = items.map(([label,value,unit]) => `<article class="metric glass"><span>${label}</span><strong>${value}<em>${unit}</em></strong><i></i></article>`).join('');
+  const items = [
+    ['测试计划', data.planCount, '个', 'rgba(14,165,233,0.28)'],
+    ['测试用例', data.caseCount, '条', 'rgba(139,92,246,0.28)'],
+    ['测试通过率', data.passRate, '%', 'rgba(16,185,129,0.28)'],
+    ['缺陷总数', data.defectCount, '个', 'rgba(244,63,94,0.24)']
+  ];
+  document.getElementById('metrics').innerHTML = items.map(([label, value, unit, glow]) => `<article class="metric glass glass-medium" style="--metric-bg:${glow}"><span>${label}</span><strong>${value}<em>${unit}</em></strong><i></i></article>`).join('');
 }
 
 async function loadPlans() {
   const rows = await api('/api/plans');
-  document.getElementById('planList').innerHTML = rows.map(row => `<article class="item-card"><div class="item-top"><strong>${row.name}</strong><span>${row.status}</span></div><p>${row.objective || '暂无目标'}</p><small>负责人：${row.ownerName || '未指定'} · 范围：${row.scopeText || '未填写'} · ${row.startDate || ''} 至 ${row.endDate || ''}</small></article>`).join('');
+  const status = document.getElementById('planStatusFilter')?.value || '';
+  const owner = (document.getElementById('planOwnerFilter')?.value || '').trim().toLowerCase();
+  const keyword = (document.getElementById('planKeywordFilter')?.value || '').trim().toLowerCase();
+  const filtered = rows.filter(row => {
+    const matchesStatus = !status || (row.status || '') === status;
+    const ownerName = (row.ownerName || '').toLowerCase();
+    const text = `${row.name || ''} ${row.objective || ''}`.toLowerCase();
+    return matchesStatus && (!owner || ownerName.includes(owner)) && (!keyword || text.includes(keyword));
+  });
+  renderPlanStats(filtered);
+  document.getElementById('planList').innerHTML = filtered.length ? filtered.map(renderPlanCard).join('') : renderEmpty('暂无匹配的测试计划');
+}
+
+function renderPlanStats(rows) {
+  const inProgress = rows.filter(row => (row.status || '') === '进行中').length;
+  const done = rows.filter(row => /完成|关闭/.test(row.status || '')).length;
+  const scheduled = rows.filter(row => row.startDate || row.endDate).length;
+  document.getElementById('planStats').innerHTML = [
+    summaryTile('计划数', rows.length, '当前筛选结果'),
+    summaryTile('进行中', inProgress, '持续推进'),
+    summaryTile('有排期', scheduled, `已完成 ${done}`)
+  ].join('');
+}
+
+function renderPlanCard(row) {
+  return `<article class="item-card plan-card glass glass-soft">
+    <div class="item-grid-head">
+      <div>
+        <strong>${row.name}</strong>
+        <p>${row.objective || '暂无目标'}</p>
+      </div>
+      <span class="meta-chip">${row.status || '未设置状态'}</span>
+    </div>
+    <div class="item-meta-grid">
+      <span>负责人：${row.ownerName || '未指定'}</span>
+      <span>范围：${row.scopeText || '未填写'}</span>
+      <span>开始：${row.startDate || '未设置'}</span>
+      <span>结束：${row.endDate || '未设置'}</span>
+    </div>
+  </article>`;
 }
 
 async function loadCases() {
   const rows = await api('/api/cases');
-  document.getElementById('caseList').innerHTML = rows.map(row => `<article class="item-card"><div class="item-top"><strong>${row.title}</strong><span>${row.result}</span></div><p>${row.module} · 计划：${row.planName}</p><small>预期：${row.expected || ''} · 实际：${row.actual || ''} · 执行人：${row.executorName || '未指定'}</small>${currentUser.permissions.includes('case:execute') ? `<div class="inline-actions"><button class="mini" onclick="executeCase(${row.id},'通过')">通过</button><button class="mini" onclick="executeCase(${row.id},'失败')">失败</button></div>` : ''}</article>`).join('');
+  const plan = (document.getElementById('casePlanFilter')?.value || '').trim().toLowerCase();
+  const result = document.getElementById('caseResultFilter')?.value || '';
+  const module = (document.getElementById('caseModuleFilter')?.value || '').trim().toLowerCase();
+  const filtered = rows.filter(row => {
+    const planName = (row.planName || '').toLowerCase();
+    const moduleName = (row.module || '').toLowerCase();
+    const matchesPlan = !plan || planName.includes(plan);
+    const matchesResult = !result || (row.result || '') === result;
+    const matchesModule = !module || moduleName.includes(module);
+    return matchesPlan && matchesResult && matchesModule;
+  });
+  renderCaseStats(filtered);
+  document.getElementById('caseList').innerHTML = filtered.length ? filtered.map(renderCaseRow).join('') : renderEmpty('暂无匹配的测试用例');
+}
+
+function renderCaseStats(rows) {
+  const passed = rows.filter(row => row.result === '通过').length;
+  const failed = rows.filter(row => row.result === '失败').length;
+  const pending = rows.filter(row => row.result === '未执行').length;
+  document.getElementById('caseStats').innerHTML = [
+    summaryTile('用例数', rows.length, '当前筛选结果'),
+    summaryTile('通过', passed, `失败 ${failed}`),
+    summaryTile('未执行', pending, '待回归检查')
+  ].join('');
+}
+
+function renderCaseRow(row) {
+  const resultTone = caseResultTone(row.result);
+  return `<article class="item-card case-row glass glass-soft">
+    <div class="case-main">
+      <div class="item-grid-head">
+        <div>
+          <strong>${row.title}</strong>
+          <p>${row.module} · 计划：${row.planName || '未关联计划'}</p>
+        </div>
+        <span class="result-chip ${resultTone}">${row.result || '未执行'}</span>
+      </div>
+      <div class="case-meta-grid">
+        <span>预期：${row.expected || '未填写'}</span>
+        <span>实际：${row.actual || '未填写'}</span>
+        <span>执行人：${row.executorName || '未指定'}</span>
+        <span>计划：${row.planName || '未指定'}</span>
+      </div>
+    </div>
+    <div class="case-actions">
+      <small>步骤：${row.steps || '暂无步骤描述'}</small>
+      ${currentUser.permissions.includes('case:execute') ? `<div class="inline-actions"><button class="mini btn-secondary" onclick="executeCase(${row.id},'通过')">通过</button><button class="mini btn-ghost" onclick="executeCase(${row.id},'失败')">失败</button></div>` : ''}
+    </div>
+  </article>`;
 }
 
 async function loadTasks() {
   const rows = await api('/api/tasks');
-  document.getElementById('taskList').innerHTML = rows.map(row => `<article class="item-card"><div class="item-top"><strong>${row.title}</strong><span>${row.status}</span></div><p>计划：${row.planName} · 负责人：${row.assigneeName}</p><small>截止日期：${row.dueDate || '未设置'}</small>${currentUser.permissions.includes('task:update') ? `<div class="inline-actions"><button class="mini" onclick="updateTask(${row.id},'进行中')">进行中</button><button class="mini" onclick="updateTask(${row.id},'已完成')">完成</button></div>` : ''}</article>`).join('');
+  const statusFilter = document.getElementById('taskStatusFilter')?.value || '';
+  const assigneeFilter = (document.getElementById('taskAssigneeFilter')?.value || '').trim().toLowerCase();
+  const planFilter = (document.getElementById('taskPlanFilter')?.value || '').trim().toLowerCase();
+  const filtered = rows.filter(row => {
+    const assignee = (row.assigneeName || '').toLowerCase();
+    const planName = (row.planName || '').toLowerCase();
+    const matchesStatus = !statusFilter || (row.status || '') === statusFilter;
+    return matchesStatus && (!assigneeFilter || assignee.includes(assigneeFilter)) && (!planFilter || planName.includes(planFilter));
+  });
+  renderTaskStats(filtered);
+  renderTaskBoard(filtered);
+}
+
+function renderTaskStats(rows) {
+  const pending = rows.filter(row => row.status === '待处理').length;
+  const progress = rows.filter(row => row.status === '进行中').length;
+  const done = rows.filter(row => row.status === '已完成').length;
+  document.getElementById('taskStats').innerHTML = [
+    summaryTile('任务数', rows.length, '当前筛选结果'),
+    summaryTile('进行中', progress, `待处理 ${pending}`),
+    summaryTile('已完成', done, '可继续压缩周期')
+  ].join('');
+}
+
+function renderTaskBoard(rows) {
+  const columns = [
+    ['待处理', 'pending'],
+    ['进行中', 'progress'],
+    ['已完成', 'done']
+  ];
+  document.getElementById('taskList').innerHTML = columns.map(([label, tone]) => renderTaskLane(label, tone, rows.filter(row => (row.status || '待处理') === label))).join('');
+}
+
+function renderTaskLane(label, tone, rows) {
+  return `<section class="lane glass glass-soft">
+    <div class="lane-header">
+      <h4>${label}</h4>
+      <span class="meta-chip">${rows.length}</span>
+    </div>
+    <div class="lane-stack">
+      ${rows.length ? rows.map(row => renderTaskCard(row, tone)).join('') : renderEmpty('暂无任务', true)}
+    </div>
+  </section>`;
+}
+
+function renderTaskCard(row, tone) {
+  const actions = currentUser.permissions.includes('task:update')
+    ? `<div class="inline-actions">${row.status !== '进行中' ? `<button class="mini btn-secondary" onclick="updateTask(${row.id},'进行中')">进行中</button>` : ''}${row.status !== '已完成' ? `<button class="mini btn-primary" onclick="updateTask(${row.id},'已完成')">完成</button>` : ''}</div>`
+    : '';
+  return `<article class="item-card task-card ${tone} glass glass-soft">
+    <div class="item-grid-head">
+      <div>
+        <strong>${row.title}</strong>
+        <p>计划：${row.planName || '未关联计划'} · 负责人：${row.assigneeName || '未指定'}</p>
+      </div>
+      <span class="meta-chip">${row.status || '待处理'}</span>
+    </div>
+    <div class="item-meta-grid">
+      <span>截止：${row.dueDate || '未设置'}</span>
+      <span>负责人：${row.assigneeName || '未指定'}</span>
+    </div>
+    ${actions}
+  </article>`;
 }
 
 async function loadDefects() {
@@ -83,28 +249,114 @@ async function loadDefects() {
 
 function renderDefect(row) {
   const tone = statusTones[row.status] || 'blue';
-  return `<article class="defect-card ${tone}"><div class="defect-head"><span>#${row.id}</span><b>${row.module}</b></div><h3>${row.title}</h3><p>${row.steps || '暂无复现步骤'}</p><div class="defect-meta"><span>严重：${row.severity}</span><span>优先：${row.priority}</span><span>负责人：${row.ownerName || '未分配'}</span><span>提交人：${row.reporterName}</span></div><div class="defect-actions"><span class="status ${tone}">${statusLabels[row.status] || row.status}</span><div>${transitionButtons(row)}</div></div></article>`;
+  return `<article class="defect-card ${tone} glass glass-soft">
+    <div class="defect-head">
+      <div class="defect-header-main">
+        <div class="defect-title-line">
+          <span>#${row.id}</span>
+          <b>${row.module}</b>
+          <span class="status ${tone}">${statusLabels[row.status] || row.status}</span>
+        </div>
+        <h3>${row.title}</h3>
+      </div>
+      <div class="defect-inline-actions">
+        <span class="severity-chip">严重：${row.severity}</span>
+        <span class="priority-chip">优先：${row.priority}</span>
+      </div>
+    </div>
+    <p>${row.steps || '暂无复现步骤'}</p>
+    <div class="defect-meta">
+      <span>负责人：${row.ownerName || '未分配'}</span>
+      <span>提交人：${row.reporterName}</span>
+      <span>严重程度：${row.severity}</span>
+      <span>优先级：${row.priority}</span>
+    </div>
+    <div class="defect-actions">
+      <small>缺陷状态会在流转后自动刷新，并同步更新统计面板。</small>
+      <div class="inline-actions">${transitionButtons(row)}</div>
+    </div>
+  </article>`;
 }
 
 function transitionButtons(row) {
   const map = {NEW:[['ASSIGNED','分配']],ASSIGNED:[['FIXING','开始修复']],FIXING:[['PENDING_VERIFY','提交验证']],PENDING_VERIFY:[['CLOSED','关闭'],['REOPENED','重开']],REOPENED:[['ASSIGNED','重新分配'],['FIXING','继续修复']]};
-  return (map[row.status] || []).map(([status,label]) => `<button class="mini" onclick="transitionDefect(${row.id},'${status}')">${label}</button>`).join('') || '<small>流程结束</small>';
+  return (map[row.status] || []).map(([status, label], index) => `<button class="mini ${index === 0 ? 'btn-primary' : 'btn-secondary'}" onclick="transitionDefect(${row.id},'${status}')">${label}</button>`).join('') || '<small>流程结束</small>';
 }
 
 async function loadReport() {
-  const data = await api('/api/report?planId=1');
-  document.getElementById('reportBox').innerHTML = `<article class="item-card"><h3>${data.plan.name}</h3><p>${data.conclusion}</p><small>用例统计：${data.cases.map(x => `${x.result}:${x.count}`).join('，')} · 缺陷统计：${data.defects.map(x => `${statusLabels[x.status] || x.status}:${x.count}`).join('，')}</small></article>`;
+  const planId = Number(document.getElementById('reportPlanId')?.value || 1);
+  const data = await api(`/api/report?planId=${planId}`);
+  renderReportStats(data);
+  document.getElementById('reportBox').innerHTML = renderReportLayout(data);
+}
+
+function renderReportStats(data) {
+  const passed = sumCounts(data.cases, item => item.result === '通过');
+  const failed = sumCounts(data.cases, item => item.result === '失败');
+  const defects = sumCounts(data.defects, () => true);
+  document.getElementById('reportStats').innerHTML = [
+    summaryTile('计划 ID', data.plan?.id || '-', data.plan?.name || '当前报告'),
+    summaryTile('通过用例', passed, `失败 ${failed}`),
+    summaryTile('缺陷数', defects, '当前计划范围')
+  ].join('');
+}
+
+function renderReportLayout(data) {
+  const caseTotal = sumCounts(data.cases, () => true);
+  const defectTotal = sumCounts(data.defects, () => true);
+  return `<article class="report-card glass glass-soft">
+    <div class="report-section-head">
+      <div>
+        <p class="eyebrow">Plan Summary</p>
+        <h4>${data.plan?.name || '未命名计划'}</h4>
+      </div>
+      <span class="meta-chip">计划 #${data.plan?.id || '-'}</span>
+    </div>
+    <div class="report-body">
+      <p>${data.conclusion || '暂无结论'}</p>
+      <div class="report-inline">
+        <small>用例总量：${caseTotal}</small>
+        <small>缺陷总量：${defectTotal}</small>
+      </div>
+    </div>
+    <div class="report-distribution">
+      ${renderReportBars(data.cases, caseTotal, item => item.result)}
+    </div>
+  </article>
+  <section class="report-side-stack">
+    <article class="report-card glass glass-soft">
+      <div class="report-section-head"><h4>用例结果分布</h4><span class="meta-chip">Cases</span></div>
+      <div class="report-badges">${renderReportBadges(data.cases, item => item.result)}</div>
+    </article>
+    <article class="report-card glass glass-soft">
+      <div class="report-section-head"><h4>缺陷状态分布</h4><span class="meta-chip">Defects</span></div>
+      <div class="report-badges">${renderReportBadges(data.defects, item => statusLabels[item.status] || item.status)}</div>
+    </article>
+  </section>`;
+}
+
+function renderReportBars(items, total, keySelector) {
+  return items.map(item => {
+    const label = keySelector(item);
+    const count = Number(item.count || 0);
+    const width = total ? Math.max(8, Math.round((count / total) * 100)) : 8;
+    return `<div class="report-bar"><div class="item-grid-head"><strong>${label}</strong><small>${count}</small></div><div class="report-bar-track"><div class="report-bar-fill" style="width:${width}%"></div></div></div>`;
+  }).join('');
+}
+
+function renderReportBadges(items, keySelector) {
+  return items.map(item => `<div class="report-badge"><span>${keySelector(item)}</span><strong>${item.count || 0}</strong></div>`).join('');
 }
 
 async function loadUsers() {
   if (!currentUser?.permissions.includes('user:manage')) return;
   const rows = await api('/api/users');
-  document.getElementById('userList').innerHTML = rows.map(row => `<article class="item-card"><div class="item-top"><strong>${row.realName}</strong><span>${row.username}</span></div><p>角色：${row.roles || '未分配'}</p><small>状态：${row.enabled ? '启用' : '禁用'}</small></article>`).join('');
+  document.getElementById('userList').innerHTML = rows.map(row => `<article class="item-card glass glass-soft"><div class="item-top"><strong>${row.realName}</strong><span>${row.username}</span></div><p>角色：${row.roles || '未分配'}</p><small>状态：${row.enabled ? '启用' : '禁用'}</small></article>`).join('');
 }
 
 async function submitPlan(e) { await submit(e, '/api/plans', loadPlans, '计划已创建'); await loadDashboard(); }
 async function submitCase(e) { await submit(e, '/api/cases', loadCases, '用例已创建'); await loadDashboard(); }
-async function submitTask(e) { await submit(e, '/api/tasks', loadTasks, '任务已分配'); }
+async function submitTask(e) { await submit(e, '/api/tasks', loadTasks, '任务已分配'); await loadDashboard(); }
 async function submitDefect(e) { await submit(e, '/api/defects', loadDefects, '缺陷已提交'); await loadDashboard(); }
 async function submitUser(e) { await submit(e, '/api/users', loadUsers, '用户已创建'); }
 
@@ -137,14 +389,77 @@ async function transitionDefect(id, status) {
   } catch (error) { toast(error.message, true); }
 }
 
+function summaryTile(label, value, helper) {
+  return `<article class="summary-tile glass glass-soft"><span>${label}</span><strong>${value}</strong><small>${helper}</small></article>`;
+}
+
+function renderEmpty(message, compact=false) {
+  return `<article class="item-card glass glass-soft${compact ? ' compact-empty' : ''}"><p>${message}</p></article>`;
+}
+
+function caseResultTone(result) {
+  if (result === '通过') return 'pass';
+  if (result === '失败') return 'fail';
+  if (result === '阻塞') return 'blocked';
+  return 'pending';
+}
+
+function sumCounts(items, predicate) {
+  return (items || []).filter(predicate).reduce((sum, item) => sum + Number(item.count || 0), 0);
+}
+
 function formData(form) {
-  return Object.fromEntries([...new FormData(form).entries()].map(([k,v]) => [k, v === '' ? null : isNumericField(k) ? Number(v) : v]));
+  return Object.fromEntries([...new FormData(form).entries()].map(([k, v]) => [k, v === '' ? null : isNumericField(k) ? Number(v) : v]));
 }
 
 function isNumericField(key) { return ['id','planId','caseId','ownerId','executorId','assigneeId','roleId'].includes(key); }
 function openModal(id) { document.getElementById(id).classList.add('show'); }
 function closeModal(id) { document.getElementById(id).classList.remove('show'); }
-function switchTab(id, btn) { document.querySelectorAll('.tab-panel').forEach(x => x.classList.remove('active')); document.querySelectorAll('.tabs button').forEach(x => x.classList.remove('active')); document.getElementById(id).classList.add('active'); btn.classList.add('active'); if (id === 'reports') loadReport(); }
-function toast(message, error=false) { const el=document.getElementById('toast'); el.textContent=message; el.className=`toast show ${error?'error':''}`; setTimeout(()=>el.className='toast',2200); }
+
+function switchTab(id, btn) {
+  document.querySelectorAll('.tab-panel').forEach(x => x.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(x => x.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  setActiveNav(btn);
+  if (id === 'reports') loadReport();
+}
+
+function setActiveNav(btn) {
+  if (!btn) return;
+  btn.classList.add('active');
+  const id = btn.getAttribute('onclick')?.match(/'([^']+)'/)?.[1];
+  const meta = pageMeta[id] || pageMeta.plans;
+  const title = document.getElementById('pageTitle');
+  const description = document.getElementById('pageDescription');
+  if (title) title.textContent = meta.title;
+  if (description) description.textContent = meta.description;
+}
+
+function toast(message, error=false) {
+  const el = document.getElementById('toast');
+  el.textContent = message;
+  el.className = `toast show ${error ? 'error' : ''}`;
+  setTimeout(() => el.className = 'toast', 2200);
+}
+
+function loadTheme() {
+  return localStorage.getItem(THEME_KEY) || 'dark';
+}
+
+function applyTheme(theme) {
+  document.body.dataset.theme = theme;
+  const nextLabel = theme === 'dark' ? '切换浅色' : '切换深色';
+  const loginLabel = document.getElementById('themeToggleLabelLogin');
+  const appLabel = document.getElementById('themeToggleLabelApp');
+  if (loginLabel) loginLabel.textContent = nextLabel;
+  if (appLabel) appLabel.textContent = nextLabel;
+}
+
+function toggleTheme() {
+  const next = document.body.dataset.theme === 'dark' ? 'light' : 'dark';
+  localStorage.setItem(THEME_KEY, next);
+  applyTheme(next);
+  toast(next === 'dark' ? '已切换为深色模式' : '已切换为浅色模式');
+}
 
 trySession();
