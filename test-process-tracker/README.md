@@ -20,15 +20,21 @@ source src/main/resources/db/data.sql;
 
 或在 MySQL 客户端中打开这两个文件执行。
 
-默认连接配置在 `src/main/resources/application.yml`：
+默认连接配置在 `src/main/resources/application.yml`，密码通过环境变量读取，避免提交真实密码：
 
 ```yaml
-spring.datasource.url: jdbc:mysql://localhost:3306/test_process_tracker
-spring.datasource.username: root
-spring.datasource.password: admin
+spring.datasource.url: ${DB_URL:jdbc:mysql://localhost:3306/test_process_tracker...}
+spring.datasource.username: ${DB_USERNAME:root}
+spring.datasource.password: ${DB_PASSWORD:}
 ```
 
-如果你的本地 MySQL 密码不是 `admin`，修改 `application.yml`。
+在 IDEA 的运行配置 `Start Spring Boot` 中设置环境变量：
+
+```text
+DB_USERNAME=root;DB_PASSWORD=admin
+```
+
+也可以复制 `src/main/resources/application-local.example.yml` 为 `application-local.yml`，填写本地密码。`application-local.yml` 已被 `.gitignore` 忽略，不会上传。
 
 ## 默认账号
 
