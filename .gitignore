@@ -1,6 +1,8 @@
 # Java / Spring Boot build output
 target/
 out/
+**/target/
+**/out/
 *.class
 *.jar
 *.war
@@ -10,16 +12,15 @@ out/
 .mvn/wrapper/maven-wrapper.jar
 dependency-reduced-pom.xml
 
-# IntelliJ IDEA
-.idea/workspace.xml
-.idea/tasks.xml
-.idea/usage.statistics.xml
-.idea/dictionaries/
-.idea/shelf/
-*.iws
-
-# Keep shared IDEA run configs, ignore personal generated files
+# IntelliJ IDEA personal files
+.idea/*
+**/.idea/*
 !.idea/runConfigurations/
+!.idea/runConfigurations/*.xml
+!**/.idea/runConfigurations/
+!**/.idea/runConfigurations/*.xml
+*.iml
+*.iws
 
 # Eclipse / VS Code
 .project
@@ -50,8 +51,15 @@ application-local.yml
 application-local.properties
 src/main/resources/application-local.yml
 src/main/resources/application-local.properties
+**/application-local.yml
+**/application-local.properties
+**/src/main/resources/application-local.yml
+**/src/main/resources/application-local.properties
 
 # Database dumps and local data
+*.sql
+!**/src/main/resources/db/schema.sql
+!**/src/main/resources/db/data.sql
 *.sql.gz
 *.dump
 *.bak.sql
