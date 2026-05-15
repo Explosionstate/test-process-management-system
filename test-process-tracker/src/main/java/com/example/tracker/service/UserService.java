@@ -24,7 +24,8 @@ public class UserService {
 
     public List<Map<String, Object>> users() {
         return jdbc.queryForList("""
-                select u.id,u.username,u.real_name realName,u.enabled,coalesce(group_concat(r.name), '') roles
+                select u.id,u.username,u.real_name realName,u.enabled,coalesce(group_concat(r.name), '') roles,
+                       min(r.id) roleId
                 from sys_user u left join sys_user_role ur on u.id=ur.user_id left join sys_role r on ur.role_id=r.id
                 group by u.id order by u.id
                 """);
@@ -52,5 +53,29 @@ public class UserService {
             jdbc.update("insert into sys_user_role(user_id, role_id) values(?,?)", userId, request.roleId());
         }
         return jdbc.queryForMap("select id,username,real_name realName,enabled from sys_user where id=?", userId);
+    }
+
+    @Transactional
+    public void update(Long id, UserRequest request) {
+        if (request.realName() == null || request.realName().isBlank()) {
+            throw new BusinessException("姓名不能为空");
+        }
+        jdbc.update("update sys_user set real_name=?, enabled=? where id=?",
+                request.realName(), request.enabled() == null || request.enabled() ? 1 : 0, id);
+        if (request.roleId() != null) {
+            jdbc.update("delete from sys_user_role where user_id=?", id);
+            jdbc.update("insert into sys_user_role(user_id, role_id) values(?,?)", id, request.roleId());
+        }
+    }
+
+    public void setEnabled(Long id, boolean enabled) {
+        jdbc.update("update sys_user set enabled=? where id=?", enabled ? 1 : 0, id);
+    }
+
+    public void resetPassword(Long id, UserRequest request) {
+        if (request.password() == null || request.password().isBlank()) {
+            throw new BusinessException("新密码不能为空");
+        }
+        jdbc.update("update sys_user set password=? where id=?", passwordEncoder.encode(request.password()), id);
     }
 }

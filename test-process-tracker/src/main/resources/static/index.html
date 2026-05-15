@@ -4,6 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>软件测试过程管理与缺陷跟踪系统</title>
+  <link rel="icon" href="data:,">
   <link rel="stylesheet" href="/style.css">
 </head>
 <body data-theme="dark">
@@ -37,7 +38,7 @@
       </div>
       <form id="loginForm" class="form-grid one">
         <label>用户名<input name="username" value="admin" required></label>
-        <label>密码<input name="password" type="password" value="password" required></label>
+        <label>密码<input name="password" type="password" value="password" autocomplete="current-password" required></label>
         <button class="btn-primary">进入系统</button>
       </form>
       <small>默认账号：admin / pm / testlead / tester / dev / qa，密码均为 password。</small>
@@ -281,6 +282,8 @@
             <div class="filters page-toolbar report-toolbar">
               <input id="reportPlanId" type="number" min="1" value="1" placeholder="计划 ID">
               <button data-perm="report:view" class="btn-secondary compact" onclick="loadReport()">刷新摘要</button>
+              <button data-perm="report:create" class="btn-primary compact" onclick="exportReport('word')">导出 Word</button>
+              <button data-perm="report:create" class="btn-secondary compact" onclick="exportReport('pdf')">导出 PDF</button>
             </div>
             <div id="reportBox" class="report-layout"></div>
           </div>
@@ -301,7 +304,7 @@
   <div id="caseModal" class="modal"><form class="modal-card glass glass-strong" onsubmit="submitCase(event)"><h2>新增测试用例</h2><div class="form-grid"><label>计划ID<input name="planId" type="number" value="1" required></label><label>模块<input name="module" required></label><label>标题<input name="title" required></label><label>执行人ID<input name="executorId" type="number" value="4"></label><label>结果<select name="result"><option>未执行</option><option>通过</option><option>失败</option><option>阻塞</option></select></label><label class="wide">步骤<textarea name="steps"></textarea></label><label class="wide">预期结果<textarea name="expected"></textarea></label><label class="wide">实际结果<textarea name="actual"></textarea></label></div><div class="modal-actions"><button class="btn-primary">保存</button><button type="button" class="btn-ghost" onclick="closeModal('caseModal')">取消</button></div></form></div>
   <div id="taskModal" class="modal"><form class="modal-card glass glass-strong" onsubmit="submitTask(event)"><h2>分配测试任务</h2><div class="form-grid"><label>计划ID<input name="planId" type="number" value="1" required></label><label>用例ID<input name="caseId" type="number"></label><label>标题<input name="title" required></label><label>负责人ID<input name="assigneeId" type="number" value="4" required></label><label>状态<input name="status" value="待处理"></label><label>截止日期<input name="dueDate" type="date"></label></div><div class="modal-actions"><button class="btn-primary">保存</button><button type="button" class="btn-ghost" onclick="closeModal('taskModal')">取消</button></div></form></div>
   <div id="defectModal" class="modal"><form class="modal-card glass glass-strong" onsubmit="submitDefect(event)"><h2>提交缺陷</h2><div class="form-grid"><label>标题<input name="title" required></label><label>模块<input name="module" required></label><label>严重程度<select name="severity"><option>低</option><option selected>中</option><option>高</option><option>严重</option></select></label><label>优先级<select name="priority"><option>低</option><option>中</option><option selected>高</option></select></label><label>负责人ID<input name="ownerId" type="number"></label><label class="wide">复现步骤<textarea name="steps"></textarea></label><label class="wide">期望结果<textarea name="expected"></textarea></label><label class="wide">实际结果<textarea name="actual"></textarea></label></div><div class="modal-actions"><button class="btn-primary">提交</button><button type="button" class="btn-ghost" onclick="closeModal('defectModal')">取消</button></div></form></div>
-  <div id="userModal" class="modal"><form class="modal-card glass glass-strong" onsubmit="submitUser(event)"><h2>新增用户</h2><div class="form-grid"><label>用户名<input name="username" required></label><label>密码<input name="password" type="password" required></label><label>姓名<input name="realName" required></label><label>角色ID<input name="roleId" type="number" value="4"></label></div><div class="modal-actions"><button class="btn-primary">保存</button><button type="button" class="btn-ghost" onclick="closeModal('userModal')">取消</button></div></form></div>
+  <div id="userModal" class="modal"><form class="modal-card glass glass-strong" onsubmit="submitUser(event)"><h2 id="userModalTitle">新增用户</h2><input name="id" type="hidden"><div class="form-grid"><label>用户名<input name="username" autocomplete="username" required></label><label>密码<input name="password" type="password" autocomplete="new-password" placeholder="新增必填，编辑可留空"></label><label>姓名<input name="realName" required></label><label>角色ID<input name="roleId" type="number" value="4"></label><label>启用状态<select name="enabled"><option value="true">启用</option><option value="false">禁用</option></select></label></div><div class="modal-actions"><button class="btn-primary">保存</button><button type="button" class="btn-ghost" onclick="closeModal('userModal')">取消</button></div></form></div>
 
   <div id="toast" class="toast"></div>
   <script src="/app.js"></script>

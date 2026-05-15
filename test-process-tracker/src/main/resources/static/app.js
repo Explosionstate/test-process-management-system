@@ -351,14 +351,27 @@ function renderReportBadges(items, keySelector) {
 async function loadUsers() {
   if (!currentUser?.permissions.includes('user:manage')) return;
   const rows = await api('/api/users');
-  document.getElementById('userList').innerHTML = rows.map(row => `<article class="item-card glass glass-soft"><div class="item-top"><strong>${row.realName}</strong><span>${row.username}</span></div><p>角色：${row.roles || '未分配'}</p><small>状态：${row.enabled ? '启用' : '禁用'}</small></article>`).join('');
+  document.getElementById('userList').innerHTML = rows.map(row => `<article class="item-card glass glass-soft"><div class="item-top"><strong>${row.realName}</strong><span>${row.username}</span></div><p>角色：${row.roles || '未分配'}</p><small>状态：${row.enabled ? '启用' : '禁用'}</small><div class="inline-actions"><button class="mini btn-secondary" onclick='editUser(${JSON.stringify(row)})'>编辑</button><button class="mini btn-ghost" onclick="toggleUser(${row.id}, ${!row.enabled})">${row.enabled ? '禁用' : '启用'}</button><button class="mini btn-primary" onclick="resetUserPassword(${row.id})">重置密码</button></div></article>`).join('');
 }
 
 async function submitPlan(e) { await submit(e, '/api/plans', loadPlans, '计划已创建'); await loadDashboard(); }
 async function submitCase(e) { await submit(e, '/api/cases', loadCases, '用例已创建'); await loadDashboard(); }
 async function submitTask(e) { await submit(e, '/api/tasks', loadTasks, '任务已分配'); await loadDashboard(); }
 async function submitDefect(e) { await submit(e, '/api/defects', loadDefects, '缺陷已提交'); await loadDashboard(); }
-async function submitUser(e) { await submit(e, '/api/users', loadUsers, '用户已创建'); }
+async function submitUser(e) {
+  e.preventDefault();
+  const data = formData(e.target);
+  const editing = Boolean(data.id);
+  if (editing && !data.password) delete data.password;
+  try {
+    await api(editing ? `/api/users/${data.id}` : '/api/users', {method: editing ? 'PUT' : 'POST', body: JSON.stringify(data)});
+    closeModal('userModal');
+    e.target.reset();
+    document.getElementById('userModalTitle').textContent = '新增用户';
+    toast(editing ? '用户已更新' : '用户已创建');
+    await loadUsers();
+  } catch (error) { toast(error.message, true); }
+}
 
 async function submit(e, path, reload, message) {
   e.preventDefault();
@@ -389,6 +402,37 @@ async function transitionDefect(id, status) {
   } catch (error) { toast(error.message, true); }
 }
 
+function editUser(row) {
+  const form = document.querySelector('#userModal form');
+  document.getElementById('userModalTitle').textContent = '编辑用户';
+  form.id.value = row.id;
+  form.username.value = row.username;
+  form.username.readOnly = true;
+  form.password.value = '';
+  form.realName.value = row.realName || '';
+  form.roleId.value = row.roleId || '';
+  form.enabled.value = String(Boolean(row.enabled));
+  openModal('userModal');
+}
+
+async function toggleUser(id, enabled) {
+  await api(`/api/users/${id}/enabled`, {method:'PATCH', body:JSON.stringify({enabled})});
+  toast(enabled ? '用户已启用' : '用户已禁用');
+  await loadUsers();
+}
+
+async function resetUserPassword(id) {
+  const password = prompt('请输入新密码', 'password');
+  if (!password) return;
+  await api(`/api/users/${id}/password`, {method:'PATCH', body:JSON.stringify({password})});
+  toast('密码已重置为 BCrypt 加密存储');
+}
+
+function exportReport(format) {
+  const planId = Number(document.getElementById('reportPlanId')?.value || 1);
+  window.location.href = `/api/report/export?planId=${planId}&format=${format}`;
+}
+
 function summaryTile(label, value, helper) {
   return `<article class="summary-tile glass glass-soft"><span>${label}</span><strong>${value}</strong><small>${helper}</small></article>`;
 }
@@ -414,7 +458,16 @@ function formData(form) {
 
 function isNumericField(key) { return ['id','planId','caseId','ownerId','executorId','assigneeId','roleId'].includes(key); }
 function openModal(id) { document.getElementById(id).classList.add('show'); }
-function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+function closeModal(id) {
+  document.getElementById(id).classList.remove('show');
+  if (id === 'userModal') {
+    const form = document.querySelector('#userModal form');
+    form.reset();
+    form.id.value = '';
+    form.username.readOnly = false;
+    document.getElementById('userModalTitle').textContent = '新增用户';
+  }
+}
 
 function switchTab(id, btn) {
   document.querySelectorAll('.tab-panel').forEach(x => x.classList.remove('active'));

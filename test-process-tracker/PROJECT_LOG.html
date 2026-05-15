@@ -1,0 +1,1351 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>PROJECT_LOG.md</title>
+<meta http-equiv="Content-type" content="text/html;charset=UTF-8">
+
+<style>
+/* https://github.com/microsoft/vscode/blob/master/extensions/markdown-language-features/media/markdown.css */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+body {
+	font-family: var(--vscode-markdown-font-family, -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif);
+	font-size: var(--vscode-markdown-font-size, 14px);
+	padding: 0 26px;
+	line-height: var(--vscode-markdown-line-height, 22px);
+	word-wrap: break-word;
+}
+
+#code-csp-warning {
+	position: fixed;
+	top: 0;
+	right: 0;
+	color: white;
+	margin: 16px;
+	text-align: center;
+	font-size: 12px;
+	font-family: sans-serif;
+	background-color:#444444;
+	cursor: pointer;
+	padding: 6px;
+	box-shadow: 1px 1px 1px rgba(0,0,0,.25);
+}
+
+#code-csp-warning:hover {
+	text-decoration: none;
+	background-color:#007acc;
+	box-shadow: 2px 2px 2px rgba(0,0,0,.25);
+}
+
+body.scrollBeyondLastLine {
+	margin-bottom: calc(100vh - 22px);
+}
+
+body.showEditorSelection .code-line {
+	position: relative;
+}
+
+body.showEditorSelection .code-active-line:before,
+body.showEditorSelection .code-line:hover:before {
+	content: "";
+	display: block;
+	position: absolute;
+	top: 0;
+	left: -12px;
+	height: 100%;
+}
+
+body.showEditorSelection li.code-active-line:before,
+body.showEditorSelection li.code-line:hover:before {
+	left: -30px;
+}
+
+.vscode-light.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.15);
+}
+
+.vscode-light.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.40);
+}
+
+.vscode-light.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-dark.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.4);
+}
+
+.vscode-dark.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.60);
+}
+
+.vscode-dark.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-high-contrast.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 160, 0, 0.7);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 160, 0, 1);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+img {
+	max-width: 100%;
+	max-height: 100%;
+}
+
+a {
+	text-decoration: none;
+}
+
+a:hover {
+	text-decoration: underline;
+}
+
+a:focus,
+input:focus,
+select:focus,
+textarea:focus {
+	outline: 1px solid -webkit-focus-ring-color;
+	outline-offset: -1px;
+}
+
+hr {
+	border: 0;
+	height: 2px;
+	border-bottom: 2px solid;
+}
+
+h1 {
+	padding-bottom: 0.3em;
+	line-height: 1.2;
+	border-bottom-width: 1px;
+	border-bottom-style: solid;
+}
+
+h1, h2, h3 {
+	font-weight: normal;
+}
+
+table {
+	border-collapse: collapse;
+}
+
+table > thead > tr > th {
+	text-align: left;
+	border-bottom: 1px solid;
+}
+
+table > thead > tr > th,
+table > thead > tr > td,
+table > tbody > tr > th,
+table > tbody > tr > td {
+	padding: 5px 10px;
+}
+
+table > tbody > tr + tr > td {
+	border-top: 1px solid;
+}
+
+blockquote {
+	margin: 0 7px 0 5px;
+	padding: 0 16px 0 10px;
+	border-left-width: 5px;
+	border-left-style: solid;
+}
+
+code {
+	font-family: Menlo, Monaco, Consolas, "Droid Sans Mono", "Courier New", monospace, "Droid Sans Fallback";
+	font-size: 1em;
+	line-height: 1.357em;
+}
+
+body.wordWrap pre {
+	white-space: pre-wrap;
+}
+
+pre:not(.hljs),
+pre.hljs code > div {
+	padding: 16px;
+	border-radius: 3px;
+	overflow: auto;
+}
+
+pre code {
+	color: var(--vscode-editor-foreground);
+	tab-size: 4;
+}
+
+/** Theming */
+
+.vscode-light pre {
+	background-color: rgba(220, 220, 220, 0.4);
+}
+
+.vscode-dark pre {
+	background-color: rgba(10, 10, 10, 0.4);
+}
+
+.vscode-high-contrast pre {
+	background-color: rgb(0, 0, 0);
+}
+
+.vscode-high-contrast h1 {
+	border-color: rgb(0, 0, 0);
+}
+
+.vscode-light table > thead > tr > th {
+	border-color: rgba(0, 0, 0, 0.69);
+}
+
+.vscode-dark table > thead > tr > th {
+	border-color: rgba(255, 255, 255, 0.69);
+}
+
+.vscode-light h1,
+.vscode-light hr,
+.vscode-light table > tbody > tr + tr > td {
+	border-color: rgba(0, 0, 0, 0.18);
+}
+
+.vscode-dark h1,
+.vscode-dark hr,
+.vscode-dark table > tbody > tr + tr > td {
+	border-color: rgba(255, 255, 255, 0.18);
+}
+
+</style>
+
+<style>
+/* Tomorrow Theme */
+/* http://jmblog.github.com/color-themes-for-google-code-highlightjs */
+/* Original theme - https://github.com/chriskempson/tomorrow-theme */
+
+/* Tomorrow Comment */
+.hljs-comment,
+.hljs-quote {
+	color: #8e908c;
+}
+
+/* Tomorrow Red */
+.hljs-variable,
+.hljs-template-variable,
+.hljs-tag,
+.hljs-name,
+.hljs-selector-id,
+.hljs-selector-class,
+.hljs-regexp,
+.hljs-deletion {
+	color: #c82829;
+}
+
+/* Tomorrow Orange */
+.hljs-number,
+.hljs-built_in,
+.hljs-builtin-name,
+.hljs-literal,
+.hljs-type,
+.hljs-params,
+.hljs-meta,
+.hljs-link {
+	color: #f5871f;
+}
+
+/* Tomorrow Yellow */
+.hljs-attribute {
+	color: #eab700;
+}
+
+/* Tomorrow Green */
+.hljs-string,
+.hljs-symbol,
+.hljs-bullet,
+.hljs-addition {
+	color: #718c00;
+}
+
+/* Tomorrow Blue */
+.hljs-title,
+.hljs-section {
+	color: #4271ae;
+}
+
+/* Tomorrow Purple */
+.hljs-keyword,
+.hljs-selector-tag {
+	color: #8959a8;
+}
+
+.hljs {
+	display: block;
+	overflow-x: auto;
+	color: #4d4d4c;
+	padding: 0.5em;
+}
+
+.hljs-emphasis {
+	font-style: italic;
+}
+
+.hljs-strong {
+	font-weight: bold;
+}
+</style>
+
+<style>
+/*
+ * Markdown PDF CSS
+ */
+
+ body {
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif, "Meiryo";
+	padding: 0 12px;
+}
+
+pre {
+	background-color: #f8f8f8;
+	border: 1px solid #cccccc;
+	border-radius: 3px;
+	overflow-x: auto;
+	white-space: pre-wrap;
+	overflow-wrap: break-word;
+}
+
+pre:not(.hljs) {
+	padding: 23px;
+	line-height: 19px;
+}
+
+blockquote {
+	background: rgba(127, 127, 127, 0.1);
+	border-color: rgba(0, 122, 204, 0.5);
+}
+
+.emoji {
+	height: 1.4em;
+}
+
+code {
+	font-size: 14px;
+	line-height: 19px;
+}
+
+/* for inline code */
+:not(pre):not(.hljs) > code {
+	color: #C9AE75; /* Change the old color so it seems less like an error */
+	font-size: inherit;
+}
+
+/* Page Break : use <div class="page"/> or <div class="page"></div> to insert page break
+-------------------------------------------------------- */
+.page {
+	page-break-after: always;
+}
+
+</style>
+
+<script src="https://unpkg.com/mermaid/dist/mermaid.min.js"></script>
+</head>
+<body>
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: document.body.classList.contains('vscode-dark') || document.body.classList.contains('vscode-high-contrast')
+          ? 'dark'
+          : 'default'
+    });
+  </script>
+<h1 id="软件测试过程管理与缺陷跟踪系统项目日志与已完成清单">软件测试过程管理与缺陷跟踪系统项目日志与已完成清单</h1>
+<h2 id="一项目基本信息">一、项目基本信息</h2>
+<table>
+<thead>
+<tr>
+<th>项目项</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>项目名称</td>
+<td>软件测试过程管理与缺陷跟踪系统</td>
+</tr>
+<tr>
+<td>项目类型</td>
+<td>Java Web 管理系统</td>
+</tr>
+<tr>
+<td>后端技术</td>
+<td>Java 21、Spring Boot 3.x、Spring Security、Spring JDBC</td>
+</tr>
+<tr>
+<td>前端技术</td>
+<td>HTML、CSS、JavaScript</td>
+</tr>
+<tr>
+<td>数据库</td>
+<td>MySQL 8.x</td>
+</tr>
+<tr>
+<td>权限模型</td>
+<td>RBAC 角色权限控制</td>
+</tr>
+<tr>
+<td>构建工具</td>
+<td>Maven</td>
+</tr>
+<tr>
+<td>默认端口</td>
+<td>8080</td>
+</tr>
+<tr>
+<td>默认访问地址</td>
+<td><code>http://localhost:8080</code></td>
+</tr>
+<tr>
+<td>默认账号</td>
+<td><code>admin / password</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="二项目已完成清单">二、项目已完成清单</h2>
+<h3 id="1-项目结构搭建">1. 项目结构搭建</h3>
+<table>
+<thead>
+<tr>
+<th>完成项</th>
+<th>说明</th>
+<th>状态</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Spring Boot 项目结构</td>
+<td>已建立标准 <code>src/main/java</code>、<code>src/main/resources</code> 目录</td>
+<td>已完成</td>
+</tr>
+<tr>
+<td>Maven 配置</td>
+<td>已添加 <code>pom.xml</code>，引入 Spring Boot、Spring JDBC、Spring Security、MySQL 驱动</td>
+<td>已完成</td>
+</tr>
+<tr>
+<td>启动类</td>
+<td>已添加 <code>com.example.tracker.TrackerApplication</code></td>
+<td>已完成</td>
+</tr>
+<tr>
+<td>静态资源目录</td>
+<td>已使用 <code>src/main/resources/static</code> 存放前端页面</td>
+<td>已完成</td>
+</tr>
+<tr>
+<td>Git 忽略配置</td>
+<td>已添加 <code>.gitignore</code>，排除 <code>target/</code>、<code>out/</code>、本地配置和缓存文件</td>
+<td>已完成</td>
+</tr>
+</tbody>
+</table>
+<h3 id="2-数据库设计与初始化">2. 数据库设计与初始化</h3>
+<table>
+<thead>
+<tr>
+<th>完成项</th>
+<th>说明</th>
+<th>状态</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>数据库建表脚本</td>
+<td><code>src/main/resources/db/schema.sql</code></td>
+<td>已完成</td>
+</tr>
+<tr>
+<td>初始化数据脚本</td>
+<td><code>src/main/resources/db/data.sql</code></td>
+<td>已完成</td>
+</tr>
+<tr>
+<td>用户表</td>
+<td><code>sys_user</code></td>
+<td>已完成</td>
+</tr>
+<tr>
+<td>角色表</td>
+<td><code>sys_role</code></td>
+<td>已完成</td>
+</tr>
+<tr>
+<td>权限表</td>
+<td><code>sys_permission</code></td>
+<td>已完成</td>
+</tr>
+<tr>
+<td>用户角色关联表</td>
+<td><code>sys_user_role</code></td>
+<td>已完成</td>
+</tr>
+<tr>
+<td>角色权限关联表</td>
+<td><code>sys_role_permission</code></td>
+<td>已完成</td>
+</tr>
+<tr>
+<td>测试计划表</td>
+<td><code>test_plan</code></td>
+<td>已完成</td>
+</tr>
+<tr>
+<td>测试用例表</td>
+<td><code>test_case</code></td>
+<td>已完成</td>
+</tr>
+<tr>
+<td>测试任务表</td>
+<td><code>test_task</code></td>
+<td>已完成</td>
+</tr>
+<tr>
+<td>缺陷表</td>
+<td><code>defect</code></td>
+<td>已完成</td>
+</tr>
+<tr>
+<td>缺陷流转记录表</td>
+<td><code>defect_history</code></td>
+<td>已完成</td>
+</tr>
+</tbody>
+</table>
+<h3 id="3-登录与-rbac-权限">3. 登录与 RBAC 权限</h3>
+<table>
+<thead>
+<tr>
+<th>完成项</th>
+<th>说明</th>
+<th>状态</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>用户登录</td>
+<td>支持用户名和密码登录</td>
+<td>已完成</td>
+</tr>
+<tr>
+<td>用户退出</td>
+<td>支持清除 Session</td>
+<td>已完成</td>
+</tr>
+<tr>
+<td>当前用户信息</td>
+<td>支持查询当前登录用户、角色和权限</td>
+<td>已完成</td>
+</tr>
+<tr>
+<td>RBAC 角色权限</td>
+<td>支持管理员、项目经理、测试负责人、测试人员、开发人员、质量管理人员</td>
+<td>已完成</td>
+</tr>
+<tr>
+<td>接口权限校验</td>
+<td>后端接口根据权限点进行校验</td>
+<td>已完成</td>
+</tr>
+<tr>
+<td>前端权限控制</td>
+<td>前端按钮根据权限点显示或隐藏</td>
+<td>已完成</td>
+</tr>
+</tbody>
+</table>
+<h3 id="4-业务模块">4. 业务模块</h3>
+<table>
+<thead>
+<tr>
+<th>模块</th>
+<th>已实现功能</th>
+<th>状态</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>测试计划模块</td>
+<td>查询、新增、修改、删除测试计划</td>
+<td>已完成</td>
+</tr>
+<tr>
+<td>测试用例模块</td>
+<td>查询、新增、执行测试用例</td>
+<td>已完成</td>
+</tr>
+<tr>
+<td>测试任务模块</td>
+<td>查询、分配任务、更新任务状态</td>
+<td>已完成</td>
+</tr>
+<tr>
+<td>缺陷管理模块</td>
+<td>查询、筛选、提交缺陷</td>
+<td>已完成</td>
+</tr>
+<tr>
+<td>缺陷流转模块</td>
+<td>支持新建、已分配、修复中、待验证、已关闭、重新打开</td>
+<td>已完成</td>
+</tr>
+<tr>
+<td>缺陷历史模块</td>
+<td>查询缺陷状态流转历史</td>
+<td>已完成</td>
+</tr>
+<tr>
+<td>仪表盘模块</td>
+<td>统计计划数、用例数、通过率、缺陷数、缺陷分布、任务进度</td>
+<td>已完成</td>
+</tr>
+<tr>
+<td>测试报告模块</td>
+<td>根据测试计划生成报告数据</td>
+<td>已完成</td>
+</tr>
+<tr>
+<td>用户管理模块</td>
+<td>查询用户、新增用户、查询角色</td>
+<td>已完成</td>
+</tr>
+</tbody>
+</table>
+<h3 id="5-前端界面">5. 前端界面</h3>
+<table>
+<thead>
+<tr>
+<th>页面 / 区域</th>
+<th>说明</th>
+<th>状态</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>登录页</td>
+<td>支持用户登录</td>
+<td>已完成</td>
+</tr>
+<tr>
+<td>首页仪表盘</td>
+<td>展示计划数量、用例数量、通过率、缺陷总数</td>
+<td>已完成</td>
+</tr>
+<tr>
+<td>缺陷状态轨道</td>
+<td>展示缺陷生命周期</td>
+<td>已完成</td>
+</tr>
+<tr>
+<td>测试计划页</td>
+<td>展示计划列表，支持新增计划</td>
+<td>已完成</td>
+</tr>
+<tr>
+<td>测试用例页</td>
+<td>展示用例列表，支持新增和执行</td>
+<td>已完成</td>
+</tr>
+<tr>
+<td>测试任务页</td>
+<td>展示任务列表，支持分配和状态更新</td>
+<td>已完成</td>
+</tr>
+<tr>
+<td>缺陷跟踪页</td>
+<td>展示缺陷卡片，支持筛选和状态流转</td>
+<td>已完成</td>
+</tr>
+<tr>
+<td>测试报告页</td>
+<td>支持生成测试报告数据</td>
+<td>已完成</td>
+</tr>
+<tr>
+<td>用户权限页</td>
+<td>支持查看用户和新增用户</td>
+<td>已完成</td>
+</tr>
+<tr>
+<td>UI 风格</td>
+<td>参考 galaxy、玻璃态卡片、曲线加载器、动态背景</td>
+<td>已完成</td>
+</tr>
+</tbody>
+</table>
+<h2 id="三项目阶段日志">三、项目阶段日志</h2>
+<table>
+<thead>
+<tr>
+<th>阶段</th>
+<th>工作内容</th>
+<th>输出成果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>第 1 阶段</td>
+<td>明确项目方向为“软件测试过程管理与缺陷跟踪系统”</td>
+<td>项目方向、范围和核心功能确定</td>
+</tr>
+<tr>
+<td>第 2 阶段</td>
+<td>整理项目章程、范围说明书、需求规格说明书和项目管理计划</td>
+<td>多份 Word 项目文档</td>
+</tr>
+<tr>
+<td>第 3 阶段</td>
+<td>初步实现 Java 原型服务和静态前端页面</td>
+<td>可运行原型、接口雏形</td>
+</tr>
+<tr>
+<td>第 4 阶段</td>
+<td>优化前端视觉风格，参考动态曲线加载器、设计卡片和 galaxy 风格</td>
+<td>深色星云风格前端页面</td>
+</tr>
+<tr>
+<td>第 5 阶段</td>
+<td>将原型重构为 Spring Boot + MySQL 项目</td>
+<td>标准 Java Web 项目结构</td>
+</tr>
+<tr>
+<td>第 6 阶段</td>
+<td>增加登录认证、Session、RBAC 权限控制</td>
+<td>登录接口、权限模型、默认角色权限</td>
+</tr>
+<tr>
+<td>第 7 阶段</td>
+<td>实现测试计划、测试用例、测试任务、缺陷和报告接口</td>
+<td>完整业务接口</td>
+</tr>
+<tr>
+<td>第 8 阶段</td>
+<td>完善数据库脚本、README、GitHub 上传和部署说明</td>
+<td>可交付代码仓库和部署说明</td>
+</tr>
+</tbody>
+</table>
+<h2 id="四运行与部署说明">四、运行与部署说明</h2>
+<h3 id="1-环境要求">1. 环境要求</h3>
+<table>
+<thead>
+<tr>
+<th>环境</th>
+<th>要求</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>JDK</td>
+<td>JDK 21</td>
+</tr>
+<tr>
+<td>数据库</td>
+<td>MySQL 8.x</td>
+</tr>
+<tr>
+<td>IDE</td>
+<td>IntelliJ IDEA 或 VS Code</td>
+</tr>
+<tr>
+<td>构建工具</td>
+<td>Maven，推荐使用 IDEA 内置 Maven</td>
+</tr>
+<tr>
+<td>浏览器</td>
+<td>Chrome / Edge</td>
+</tr>
+</tbody>
+</table>
+<h3 id="2-数据库初始化">2. 数据库初始化</h3>
+<p>进入 MySQL 后执行：</p>
+<pre class="hljs"><code><div>source src<span class="hljs-operator">/</span>main<span class="hljs-operator">/</span>resources<span class="hljs-operator">/</span>db<span class="hljs-operator">/</span>schema.sql;
+source src<span class="hljs-operator">/</span>main<span class="hljs-operator">/</span>resources<span class="hljs-operator">/</span>db<span class="hljs-operator">/</span>data.sql;
+</div></code></pre>
+<p>或者直接复制两个 SQL 文件内容到 MySQL 客户端中执行。</p>
+<h3 id="3-数据库连接配置">3. 数据库连接配置</h3>
+<p>项目通过环境变量读取数据库账号和密码，避免提交真实密码。</p>
+<pre class="hljs"><code><div>DB_USERNAME=root
+DB_PASSWORD=你的MySQL密码
+</div></code></pre>
+<p>IDEA 运行配置中可填写：</p>
+<pre class="hljs"><code><div>DB_USERNAME=root;DB_PASSWORD=admin
+</div></code></pre>
+<h3 id="4-启动方式">4. 启动方式</h3>
+<p>启动类：</p>
+<pre class="hljs"><code><div>com.example.tracker.TrackerApplication
+</div></code></pre>
+<p>启动后访问：</p>
+<pre class="hljs"><code><div>http://localhost:8080
+</div></code></pre>
+<p>默认登录账号：</p>
+<pre class="hljs"><code><div>admin / password
+</div></code></pre>
+<h2 id="五默认角色与账号">五、默认角色与账号</h2>
+<table>
+<thead>
+<tr>
+<th>用户名</th>
+<th>密码</th>
+<th>角色</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>admin</td>
+<td>password</td>
+<td>管理员</td>
+<td>拥有全部权限</td>
+</tr>
+<tr>
+<td>pm</td>
+<td>password</td>
+<td>项目经理</td>
+<td>管理计划、任务、缺陷分配和报表</td>
+</tr>
+<tr>
+<td>testlead</td>
+<td>password</td>
+<td>测试负责人</td>
+<td>管理测试计划、用例、任务和缺陷验证</td>
+</tr>
+<tr>
+<td>tester</td>
+<td>password</td>
+<td>测试人员</td>
+<td>执行用例、提交缺陷、验证缺陷</td>
+</tr>
+<tr>
+<td>dev</td>
+<td>password</td>
+<td>开发人员</td>
+<td>修复缺陷、提交待验证</td>
+</tr>
+<tr>
+<td>qa</td>
+<td>password</td>
+<td>质量管理人员</td>
+<td>查看质量统计和报告</td>
+</tr>
+</tbody>
+</table>
+<h2 id="六权限点说明">六、权限点说明</h2>
+<table>
+<thead>
+<tr>
+<th>权限编码</th>
+<th>权限说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>user:manage</code></td>
+<td>用户管理</td>
+</tr>
+<tr>
+<td><code>plan:view</code></td>
+<td>查看测试计划</td>
+</tr>
+<tr>
+<td><code>plan:create</code></td>
+<td>创建测试计划</td>
+</tr>
+<tr>
+<td><code>plan:update</code></td>
+<td>修改测试计划</td>
+</tr>
+<tr>
+<td><code>case:view</code></td>
+<td>查看测试用例</td>
+</tr>
+<tr>
+<td><code>case:create</code></td>
+<td>创建测试用例</td>
+</tr>
+<tr>
+<td><code>case:execute</code></td>
+<td>执行测试用例</td>
+</tr>
+<tr>
+<td><code>task:view</code></td>
+<td>查看测试任务</td>
+</tr>
+<tr>
+<td><code>task:assign</code></td>
+<td>分配测试任务</td>
+</tr>
+<tr>
+<td><code>task:update</code></td>
+<td>更新测试任务</td>
+</tr>
+<tr>
+<td><code>defect:view</code></td>
+<td>查看缺陷</td>
+</tr>
+<tr>
+<td><code>defect:create</code></td>
+<td>提交缺陷</td>
+</tr>
+<tr>
+<td><code>defect:assign</code></td>
+<td>分配缺陷</td>
+</tr>
+<tr>
+<td><code>defect:fix</code></td>
+<td>修复缺陷</td>
+</tr>
+<tr>
+<td><code>defect:verify</code></td>
+<td>验证缺陷</td>
+</tr>
+<tr>
+<td><code>report:view</code></td>
+<td>查看报表</td>
+</tr>
+<tr>
+<td><code>report:create</code></td>
+<td>生成测试报告</td>
+</tr>
+</tbody>
+</table>
+<h2 id="七接口格式说明">七、接口格式说明</h2>
+<h3 id="1-通用响应格式">1. 通用响应格式</h3>
+<p>系统后端接口统一返回 JSON 格式。</p>
+<p>成功响应：</p>
+<pre class="hljs"><code><div><span class="hljs-punctuation">{</span>
+  <span class="hljs-attr">&quot;success&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-literal"><span class="hljs-keyword">true</span></span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;data&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">{</span><span class="hljs-punctuation">}</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;error&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-literal"><span class="hljs-keyword">null</span></span>
+<span class="hljs-punctuation">}</span>
+</div></code></pre>
+<p>失败响应：</p>
+<pre class="hljs"><code><div><span class="hljs-punctuation">{</span>
+  <span class="hljs-attr">&quot;success&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-literal"><span class="hljs-keyword">false</span></span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;data&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-literal"><span class="hljs-keyword">null</span></span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;error&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;错误原因&quot;</span>
+<span class="hljs-punctuation">}</span>
+</div></code></pre>
+<h3 id="2-登录认证接口">2. 登录认证接口</h3>
+<h4 id="用户登录">用户登录</h4>
+<pre class="hljs"><code><div>POST /api/auth/login
+<span class="hljs-attribute">Content-Type</span><span class="hljs-punctuation">: </span>application/json
+</div></code></pre>
+<p>请求示例：</p>
+<pre class="hljs"><code><div><span class="hljs-punctuation">{</span>
+  <span class="hljs-attr">&quot;username&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;admin&quot;</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;password&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;password&quot;</span>
+<span class="hljs-punctuation">}</span>
+</div></code></pre>
+<p>响应示例：</p>
+<pre class="hljs"><code><div><span class="hljs-punctuation">{</span>
+  <span class="hljs-attr">&quot;success&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-literal"><span class="hljs-keyword">true</span></span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;data&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">{</span>
+    <span class="hljs-attr">&quot;id&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">1</span><span class="hljs-punctuation">,</span>
+    <span class="hljs-attr">&quot;username&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;admin&quot;</span><span class="hljs-punctuation">,</span>
+    <span class="hljs-attr">&quot;realName&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;系统管理员&quot;</span><span class="hljs-punctuation">,</span>
+    <span class="hljs-attr">&quot;roles&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">[</span><span class="hljs-string">&quot;ADMIN&quot;</span><span class="hljs-punctuation">]</span><span class="hljs-punctuation">,</span>
+    <span class="hljs-attr">&quot;permissions&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">[</span><span class="hljs-string">&quot;user:manage&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-string">&quot;plan:view&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-string">&quot;defect:view&quot;</span><span class="hljs-punctuation">]</span>
+  <span class="hljs-punctuation">}</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;error&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-literal"><span class="hljs-keyword">null</span></span>
+<span class="hljs-punctuation">}</span>
+</div></code></pre>
+<h4 id="查询当前用户">查询当前用户</h4>
+<pre class="hljs"><code><div>GET /api/auth/me
+</div></code></pre>
+<h4 id="退出登录">退出登录</h4>
+<pre class="hljs"><code><div>POST /api/auth/logout
+</div></code></pre>
+<h3 id="3-用户与角色接口">3. 用户与角色接口</h3>
+<h4 id="查询用户列表">查询用户列表</h4>
+<pre class="hljs"><code><div>GET /api/users
+</div></code></pre>
+<p>需要权限：<code>user:manage</code></p>
+<h4 id="新增用户">新增用户</h4>
+<pre class="hljs"><code><div>POST /api/users
+<span class="hljs-attribute">Content-Type</span><span class="hljs-punctuation">: </span>application/json
+</div></code></pre>
+<p>请求示例：</p>
+<pre class="hljs"><code><div><span class="hljs-punctuation">{</span>
+  <span class="hljs-attr">&quot;username&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;newtester&quot;</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;password&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;password&quot;</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;realName&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;新测试人员&quot;</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;roleId&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">4</span>
+<span class="hljs-punctuation">}</span>
+</div></code></pre>
+<h4 id="查询角色列表">查询角色列表</h4>
+<pre class="hljs"><code><div>GET /api/users/roles
+</div></code></pre>
+<h3 id="4-测试计划接口">4. 测试计划接口</h3>
+<h4 id="查询测试计划">查询测试计划</h4>
+<pre class="hljs"><code><div>GET /api/plans
+</div></code></pre>
+<p>需要权限：<code>plan:view</code></p>
+<h4 id="新增测试计划">新增测试计划</h4>
+<pre class="hljs"><code><div>POST /api/plans
+<span class="hljs-attribute">Content-Type</span><span class="hljs-punctuation">: </span>application/json
+</div></code></pre>
+<p>请求示例：</p>
+<pre class="hljs"><code><div><span class="hljs-punctuation">{</span>
+  <span class="hljs-attr">&quot;name&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;回归测试计划&quot;</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;objective&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;验证缺陷修复后的核心流程&quot;</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;scopeText&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;缺陷模块、报表模块&quot;</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;ownerId&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">3</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;status&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;进行中&quot;</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;startDate&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;2026-05-01&quot;</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;endDate&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;2026-05-15&quot;</span>
+<span class="hljs-punctuation">}</span>
+</div></code></pre>
+<h4 id="修改测试计划">修改测试计划</h4>
+<pre class="hljs"><code><div>PUT /api/plans/{id}
+</div></code></pre>
+<h4 id="删除测试计划">删除测试计划</h4>
+<pre class="hljs"><code><div>DELETE /api/plans/{id}
+</div></code></pre>
+<h3 id="5-测试用例接口">5. 测试用例接口</h3>
+<h4 id="查询测试用例">查询测试用例</h4>
+<pre class="hljs"><code><div>GET /api/cases
+</div></code></pre>
+<p>可选参数：</p>
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>planId</code></td>
+<td>按测试计划筛选</td>
+</tr>
+<tr>
+<td><code>result</code></td>
+<td>按执行结果筛选</td>
+</tr>
+</tbody>
+</table>
+<h4 id="新增测试用例">新增测试用例</h4>
+<pre class="hljs"><code><div>POST /api/cases
+<span class="hljs-attribute">Content-Type</span><span class="hljs-punctuation">: </span>application/json
+</div></code></pre>
+<p>请求示例：</p>
+<pre class="hljs"><code><div><span class="hljs-punctuation">{</span>
+  <span class="hljs-attr">&quot;planId&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">1</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;module&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;登录模块&quot;</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;title&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;错误密码登录提示&quot;</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;precondition&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;用户账号存在&quot;</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;steps&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;输入正确账号和错误密码后点击登录&quot;</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;expected&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;提示账号或密码错误&quot;</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;actual&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;页面无提示&quot;</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;result&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;失败&quot;</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;executorId&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">4</span>
+<span class="hljs-punctuation">}</span>
+</div></code></pre>
+<h4 id="执行测试用例">执行测试用例</h4>
+<pre class="hljs"><code><div>PUT /api/cases/{id}/execute
+<span class="hljs-attribute">Content-Type</span><span class="hljs-punctuation">: </span>application/json
+</div></code></pre>
+<p>请求示例：</p>
+<pre class="hljs"><code><div><span class="hljs-punctuation">{</span>
+  <span class="hljs-attr">&quot;actual&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;执行通过&quot;</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;result&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;通过&quot;</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;executorId&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">4</span>
+<span class="hljs-punctuation">}</span>
+</div></code></pre>
+<h3 id="6-测试任务接口">6. 测试任务接口</h3>
+<h4 id="查询测试任务">查询测试任务</h4>
+<pre class="hljs"><code><div>GET /api/tasks
+</div></code></pre>
+<p>可选参数：</p>
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>assigneeId</code></td>
+<td>按负责人筛选</td>
+</tr>
+<tr>
+<td><code>status</code></td>
+<td>按任务状态筛选</td>
+</tr>
+</tbody>
+</table>
+<h4 id="分配测试任务">分配测试任务</h4>
+<pre class="hljs"><code><div>POST /api/tasks
+<span class="hljs-attribute">Content-Type</span><span class="hljs-punctuation">: </span>application/json
+</div></code></pre>
+<p>请求示例：</p>
+<pre class="hljs"><code><div><span class="hljs-punctuation">{</span>
+  <span class="hljs-attr">&quot;planId&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">1</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;caseId&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">2</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;title&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;验证错误密码提示缺陷&quot;</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;assigneeId&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">4</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;status&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;待处理&quot;</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;dueDate&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;2026-05-20&quot;</span>
+<span class="hljs-punctuation">}</span>
+</div></code></pre>
+<h4 id="更新任务状态">更新任务状态</h4>
+<pre class="hljs"><code><div>PUT /api/tasks/{id}/status
+<span class="hljs-attribute">Content-Type</span><span class="hljs-punctuation">: </span>application/json
+</div></code></pre>
+<p>请求示例：</p>
+<pre class="hljs"><code><div><span class="hljs-punctuation">{</span>
+  <span class="hljs-attr">&quot;status&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;已完成&quot;</span>
+<span class="hljs-punctuation">}</span>
+</div></code></pre>
+<h3 id="7-缺陷管理接口">7. 缺陷管理接口</h3>
+<h4 id="查询缺陷">查询缺陷</h4>
+<pre class="hljs"><code><div>GET /api/defects
+</div></code></pre>
+<p>可选参数：</p>
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>status</code></td>
+<td>按缺陷状态筛选</td>
+</tr>
+<tr>
+<td><code>module</code></td>
+<td>按所属模块筛选</td>
+</tr>
+<tr>
+<td><code>ownerId</code></td>
+<td>按负责人筛选</td>
+</tr>
+</tbody>
+</table>
+<h4 id="提交缺陷">提交缺陷</h4>
+<pre class="hljs"><code><div>POST /api/defects
+<span class="hljs-attribute">Content-Type</span><span class="hljs-punctuation">: </span>application/json
+</div></code></pre>
+<p>请求示例：</p>
+<pre class="hljs"><code><div><span class="hljs-punctuation">{</span>
+  <span class="hljs-attr">&quot;title&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;错误密码登录时缺少错误提示&quot;</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;module&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;登录模块&quot;</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;severity&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;中&quot;</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;priority&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;高&quot;</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;steps&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;输入正确账号和错误密码后点击登录&quot;</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;expected&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;提示账号或密码错误&quot;</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;actual&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;页面无提示&quot;</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;ownerId&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">5</span>
+<span class="hljs-punctuation">}</span>
+</div></code></pre>
+<h4 id="缺陷状态流转">缺陷状态流转</h4>
+<pre class="hljs"><code><div>POST /api/defects/{id}/transition
+<span class="hljs-attribute">Content-Type</span><span class="hljs-punctuation">: </span>application/json
+</div></code></pre>
+<p>请求示例：</p>
+<pre class="hljs"><code><div><span class="hljs-punctuation">{</span>
+  <span class="hljs-attr">&quot;status&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;ASSIGNED&quot;</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;ownerId&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">5</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;note&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;分配给开发人员修复&quot;</span>
+<span class="hljs-punctuation">}</span>
+</div></code></pre>
+<p>缺陷状态枚举：</p>
+<table>
+<thead>
+<tr>
+<th>状态编码</th>
+<th>中文含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>NEW</code></td>
+<td>新建</td>
+</tr>
+<tr>
+<td><code>ASSIGNED</code></td>
+<td>已分配</td>
+</tr>
+<tr>
+<td><code>FIXING</code></td>
+<td>修复中</td>
+</tr>
+<tr>
+<td><code>PENDING_VERIFY</code></td>
+<td>待验证</td>
+</tr>
+<tr>
+<td><code>CLOSED</code></td>
+<td>已关闭</td>
+</tr>
+<tr>
+<td><code>REOPENED</code></td>
+<td>重新打开</td>
+</tr>
+</tbody>
+</table>
+<h4 id="查询缺陷流转历史">查询缺陷流转历史</h4>
+<pre class="hljs"><code><div>GET /api/defects/{id}/history
+</div></code></pre>
+<h3 id="8-仪表盘与报告接口">8. 仪表盘与报告接口</h3>
+<h4 id="查询仪表盘统计">查询仪表盘统计</h4>
+<pre class="hljs"><code><div>GET /api/dashboard
+</div></code></pre>
+<p>返回内容包括：</p>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>planCount</code></td>
+<td>测试计划数量</td>
+</tr>
+<tr>
+<td><code>caseCount</code></td>
+<td>测试用例数量</td>
+</tr>
+<tr>
+<td><code>passedCaseCount</code></td>
+<td>已通过测试用例数量</td>
+</tr>
+<tr>
+<td><code>passRate</code></td>
+<td>测试通过率</td>
+</tr>
+<tr>
+<td><code>defectCount</code></td>
+<td>缺陷总数</td>
+</tr>
+<tr>
+<td><code>defectsByStatus</code></td>
+<td>按状态统计缺陷</td>
+</tr>
+<tr>
+<td><code>defectsByModule</code></td>
+<td>按模块统计缺陷</td>
+</tr>
+<tr>
+<td><code>taskProgress</code></td>
+<td>任务进度统计</td>
+</tr>
+<tr>
+<td><code>recentDefects</code></td>
+<td>最近更新缺陷</td>
+</tr>
+</tbody>
+</table>
+<h4 id="生成测试报告数据">生成测试报告数据</h4>
+<pre class="hljs"><code><div>GET /api/report?planId=1
+</div></code></pre>
+<h2 id="八缺陷状态流转规则">八、缺陷状态流转规则</h2>
+<table>
+<thead>
+<tr>
+<th>当前状态</th>
+<th>下一状态</th>
+<th>操作权限</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>NEW</code></td>
+<td><code>ASSIGNED</code></td>
+<td><code>defect:assign</code></td>
+</tr>
+<tr>
+<td><code>ASSIGNED</code></td>
+<td><code>FIXING</code></td>
+<td><code>defect:fix</code></td>
+</tr>
+<tr>
+<td><code>FIXING</code></td>
+<td><code>PENDING_VERIFY</code></td>
+<td><code>defect:fix</code></td>
+</tr>
+<tr>
+<td><code>PENDING_VERIFY</code></td>
+<td><code>CLOSED</code></td>
+<td><code>defect:verify</code></td>
+</tr>
+<tr>
+<td><code>PENDING_VERIFY</code></td>
+<td><code>REOPENED</code></td>
+<td><code>defect:verify</code></td>
+</tr>
+<tr>
+<td><code>REOPENED</code></td>
+<td><code>ASSIGNED</code></td>
+<td><code>defect:assign</code></td>
+</tr>
+<tr>
+<td><code>REOPENED</code></td>
+<td><code>FIXING</code></td>
+<td><code>defect:fix</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="九当前仍可优化内容">九、当前仍可优化内容</h2>
+<table>
+<thead>
+<tr>
+<th>优化项</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>密码加密统一化</td>
+<td>当前兼容明文和 BCrypt，后续可统一改为 BCrypt 存储</td>
+</tr>
+<tr>
+<td>用户编辑与禁用</td>
+<td>当前支持新增用户，后续可补充编辑、禁用、重置密码</td>
+</tr>
+<tr>
+<td>测试报告导出</td>
+<td>当前生成报告数据，后续可补充 Word / PDF 导出</td>
+</tr>
+<tr>
+<td>缺陷附件</td>
+<td>当前未实现截图或附件上传</td>
+</tr>
+<tr>
+<td>分页查询</td>
+<td>当前列表未做分页，数据量大时可优化</td>
+</tr>
+<tr>
+<td>自动化测试</td>
+<td>后续可增加单元测试和接口测试</td>
+</tr>
+<tr>
+<td>Maven 命令行环境</td>
+<td>当前主要依赖 IDEA 内置 Maven，后续可安装系统 Maven</td>
+</tr>
+</tbody>
+</table>
+
+</body>
+</html>

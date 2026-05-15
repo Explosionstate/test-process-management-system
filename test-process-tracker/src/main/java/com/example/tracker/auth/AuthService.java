@@ -23,7 +23,7 @@ public class AuthService {
         Map<String, Object> user = jdbc.queryForList("select * from sys_user where username=? and enabled=1", request.username())
                 .stream().findFirst().orElseThrow(() -> new BusinessException("用户名或密码错误"));
         String encoded = String.valueOf(user.get("password"));
-        if (!passwordMatches(request.password(), encoded)) {
+        if (!passwordEncoder.matches(request.password(), encoded)) {
             throw new BusinessException("用户名或密码错误");
         }
         Long userId = ((Number) user.get("id")).longValue();
@@ -53,13 +53,4 @@ public class AuthService {
         return new LoginUser(userId, username, realName, roles, permissions);
     }
 
-    private boolean passwordMatches(String rawPassword, String storedPassword) {
-        if (storedPassword == null) {
-            return false;
-        }
-        if (storedPassword.startsWith("$2a$") || storedPassword.startsWith("$2b$") || storedPassword.startsWith("$2y$")) {
-            return passwordEncoder.matches(rawPassword, storedPassword);
-        }
-        return storedPassword.equals(rawPassword);
-    }
 }

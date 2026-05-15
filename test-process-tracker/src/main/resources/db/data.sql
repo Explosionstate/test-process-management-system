@@ -1,12 +1,12 @@
 USE test_process_tracker;
 
 INSERT INTO sys_user(username, password, real_name) VALUES
-('admin', 'password', '系统管理员'),
-('pm', 'password', '项目经理'),
-('testlead', 'password', '测试负责人'),
-('tester', 'password', '测试人员'),
-('dev', 'password', '开发人员'),
-('qa', 'password', '质量管理人员');
+('admin', '$2a$10$sXTL7gkCOj1s0WRbnvnvwewHC5TzZfA24uIc2/3PJRvql3rFpQULO', '系统管理员'),
+('pm', '$2a$10$sXTL7gkCOj1s0WRbnvnvwewHC5TzZfA24uIc2/3PJRvql3rFpQULO', '项目经理'),
+('testlead', '$2a$10$sXTL7gkCOj1s0WRbnvnvwewHC5TzZfA24uIc2/3PJRvql3rFpQULO', '测试负责人'),
+('tester', '$2a$10$sXTL7gkCOj1s0WRbnvnvwewHC5TzZfA24uIc2/3PJRvql3rFpQULO', '测试人员'),
+('dev', '$2a$10$sXTL7gkCOj1s0WRbnvnvwewHC5TzZfA24uIc2/3PJRvql3rFpQULO', '开发人员'),
+('qa', '$2a$10$sXTL7gkCOj1s0WRbnvnvwewHC5TzZfA24uIc2/3PJRvql3rFpQULO', '质量管理人员');
 
 INSERT INTO sys_role(code, name) VALUES
 ('ADMIN', '管理员'), ('PROJECT_MANAGER', '项目经理'), ('TEST_LEAD', '测试负责人'),

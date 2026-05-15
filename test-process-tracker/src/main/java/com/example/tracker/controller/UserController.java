@@ -6,7 +6,10 @@ import com.example.tracker.domain.UserRequest;
 import com.example.tracker.service.UserService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -35,6 +38,27 @@ public class UserController {
     ApiResponse<Map<String, Object>> create(@RequestBody UserRequest request, HttpSession session) {
         authService.require(session, "user:manage");
         return ApiResponse.ok(userService.create(request));
+    }
+
+    @PutMapping("/{id}")
+    ApiResponse<Void> update(@PathVariable Long id, @RequestBody UserRequest request, HttpSession session) {
+        authService.require(session, "user:manage");
+        userService.update(id, request);
+        return ApiResponse.ok(null);
+    }
+
+    @PatchMapping("/{id}/enabled")
+    ApiResponse<Void> enabled(@PathVariable Long id, @RequestBody UserRequest request, HttpSession session) {
+        authService.require(session, "user:manage");
+        userService.setEnabled(id, request.enabled() != null && request.enabled());
+        return ApiResponse.ok(null);
+    }
+
+    @PatchMapping("/{id}/password")
+    ApiResponse<Void> resetPassword(@PathVariable Long id, @RequestBody UserRequest request, HttpSession session) {
+        authService.require(session, "user:manage");
+        userService.resetPassword(id, request);
+        return ApiResponse.ok(null);
     }
 
     @GetMapping("/roles")

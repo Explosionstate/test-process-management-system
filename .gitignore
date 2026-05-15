@@ -60,6 +60,7 @@ src/main/resources/application-local.properties
 *.sql
 !**/src/main/resources/db/schema.sql
 !**/src/main/resources/db/data.sql
+!**/src/main/resources/db/upgrade-*.sql
 *.sql.gz
 *.dump
 *.bak.sql
@@ -78,3 +79,6 @@ pnpm-debug.log*
 ~$*.docx
 ~$*.doc
 *.tmp.docx
+
+# Local assistant/tool cache
+.claude/
