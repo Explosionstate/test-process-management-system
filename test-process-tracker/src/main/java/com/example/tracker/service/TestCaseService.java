@@ -4,6 +4,8 @@ import com.example.tracker.common.BusinessException;
 import com.example.tracker.domain.TestCaseRequest;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.sql.PreparedStatement;
@@ -14,6 +16,7 @@ import java.util.Map;
 
 @Service
 public class TestCaseService {
+    private static final Logger log = LoggerFactory.getLogger(TestCaseService.class);
     private final JdbcTemplate jdbc;
 
     public TestCaseService(JdbcTemplate jdbc) {
@@ -48,12 +51,15 @@ public class TestCaseService {
             if (request.executorId() == null) ps.setNull(9, Types.BIGINT); else ps.setLong(9, request.executorId());
             return ps;
         }, keyHolder);
-        return jdbc.queryForMap("select * from test_case where id=?", keyHolder.getKey().longValue());
+        Long id = keyHolder.getKey().longValue();
+        log.info("test_case_created id={} planId={} title={} result={}", id, request.planId(), request.title(), value(request.result(), "未执行"));
+        return jdbc.queryForMap("select * from test_case where id=?", id);
     }
 
     public void execute(Long id, TestCaseRequest request) {
         jdbc.update("update test_case set actual=?, result=?, executor_id=?, executed_at=now() where id=?",
                 request.actual(), value(request.result(), "未执行"), request.executorId(), id);
+        log.info("test_case_executed id={} result={} executorId={}", id, value(request.result(), "未执行"), request.executorId());
     }
 
     private static String emptyToNull(String value) {

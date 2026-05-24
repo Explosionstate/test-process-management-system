@@ -7,12 +7,22 @@ const pageMeta = {
   tasks: {title: '测试任务', description: '按计划分配执行任务，跟踪处理状态和截止时间。'},
   defects: {title: '缺陷跟踪', description: '集中查看缺陷状态、责任人和流转动作。'},
   reports: {title: '测试报告', description: '汇总用例执行和缺陷状态，生成测试结论。'},
-  users: {title: '用户权限', description: '查看用户、角色和权限分配情况。'}
+  users: {title: '用户权限', description: '查看用户、角色和权限分配情况。'},
+  logs: {title: '系统日志', description: '查看访问、安全、业务操作和异常日志，并导出日志文件。'}
 };
 const THEME_KEY = 'tpt-theme';
+const pagination = {
+  plans: {page: 1, size: 4},
+  cases: {page: 1, size: 5},
+  tasks: {page: 1, size: 6},
+  defects: {page: 1, size: 6},
+  users: {page: 1, size: 6}
+};
+const pageSignatures = {};
 
 const api = async (path, options = {}) => {
-  const response = await fetch(path, {credentials:'same-origin', headers:{'Content-Type':'application/json'}, ...options});
+  const headers = options.body instanceof FormData ? {} : {'Content-Type':'application/json'};
+  const response = await fetch(path, {credentials:'same-origin', headers, ...options});
   const json = await response.json();
   if (!json.success) throw new Error(json.error || '请求失败');
   return json.data;
@@ -88,7 +98,9 @@ async function loadPlans() {
     return matchesStatus && (!owner || ownerName.includes(owner)) && (!keyword || text.includes(keyword));
   });
   renderPlanStats(filtered);
-  document.getElementById('planList').innerHTML = filtered.length ? filtered.map(renderPlanCard).join('') : renderEmpty('暂无匹配的测试计划');
+  const page = paginateRows('plans', filtered, `${status}|${owner}|${keyword}`);
+  document.getElementById('planList').innerHTML = page.rows.length ? page.rows.map(renderPlanCard).join('') : renderEmpty('暂无匹配的测试计划');
+  renderPagination('planPagination', 'plans', page, 'loadPlans');
 }
 
 function renderPlanStats(rows) {
@@ -134,7 +146,9 @@ async function loadCases() {
     return matchesPlan && matchesResult && matchesModule;
   });
   renderCaseStats(filtered);
-  document.getElementById('caseList').innerHTML = filtered.length ? filtered.map(renderCaseRow).join('') : renderEmpty('暂无匹配的测试用例');
+  const page = paginateRows('cases', filtered, `${plan}|${result}|${module}`);
+  document.getElementById('caseList').innerHTML = page.rows.length ? page.rows.map(renderCaseRow).join('') : renderEmpty('暂无匹配的测试用例');
+  renderPagination('casePagination', 'cases', page, 'loadCases');
 }
 
 function renderCaseStats(rows) {
@@ -185,7 +199,9 @@ async function loadTasks() {
     return matchesStatus && (!assigneeFilter || assignee.includes(assigneeFilter)) && (!planFilter || planName.includes(planFilter));
   });
   renderTaskStats(filtered);
-  renderTaskBoard(filtered);
+  const page = paginateRows('tasks', filtered, `${statusFilter}|${assigneeFilter}|${planFilter}`);
+  renderTaskBoard(page.rows);
+  renderPagination('taskPagination', 'tasks', page, 'loadTasks');
 }
 
 function renderTaskStats(rows) {
@@ -244,7 +260,9 @@ async function loadDefects() {
   const status = document.getElementById('defectStatus')?.value || '';
   const module = document.getElementById('defectModule')?.value || '';
   const rows = await api(`/api/defects?status=${encodeURIComponent(status)}&module=${encodeURIComponent(module)}`);
-  document.getElementById('defectList').innerHTML = rows.map(row => renderDefect(row)).join('');
+  const page = paginateRows('defects', rows, `${status}|${module}`);
+  document.getElementById('defectList').innerHTML = page.rows.length ? page.rows.map(row => renderDefect(row)).join('') : renderEmpty('暂无匹配的缺陷');
+  renderPagination('defectPagination', 'defects', page, 'loadDefects');
 }
 
 function renderDefect(row) {
@@ -273,8 +291,14 @@ function renderDefect(row) {
     </div>
     <div class="defect-actions">
       <small>缺陷状态会在流转后自动刷新，并同步更新统计面板。</small>
-      <div class="inline-actions">${transitionButtons(row)}</div>
+      <div class="inline-actions">
+        <button class="mini btn-ghost" onclick="toggleAttachments(${row.id}, this)">附件 ${row.attachmentCount || 0}</button>
+        <button class="mini btn-secondary" onclick="chooseDefectAttachments(${row.id})">上传附件</button>
+        ${transitionButtons(row)}
+      </div>
     </div>
+    <input id="attachmentInput-${row.id}" class="hidden" type="file" multiple onchange="uploadDefectAttachments(${row.id}, this)">
+    <div id="attachments-${row.id}" class="attachment-list hidden"></div>
   </article>`;
 }
 
@@ -351,13 +375,46 @@ function renderReportBadges(items, keySelector) {
 async function loadUsers() {
   if (!currentUser?.permissions.includes('user:manage')) return;
   const rows = await api('/api/users');
-  document.getElementById('userList').innerHTML = rows.map(row => `<article class="item-card glass glass-soft"><div class="item-top"><strong>${row.realName}</strong><span>${row.username}</span></div><p>角色：${row.roles || '未分配'}</p><small>状态：${row.enabled ? '启用' : '禁用'}</small><div class="inline-actions"><button class="mini btn-secondary" onclick='editUser(${JSON.stringify(row)})'>编辑</button><button class="mini btn-ghost" onclick="toggleUser(${row.id}, ${!row.enabled})">${row.enabled ? '禁用' : '启用'}</button><button class="mini btn-primary" onclick="resetUserPassword(${row.id})">重置密码</button></div></article>`).join('');
+  const page = paginateRows('users', rows, 'all');
+  document.getElementById('userList').innerHTML = page.rows.length ? page.rows.map(row => `<article class="item-card glass glass-soft"><div class="item-top"><strong>${row.realName}</strong><span>${row.username}</span></div><p>角色：${row.roles || '未分配'}</p><small>状态：${row.enabled ? '启用' : '禁用'}</small><div class="inline-actions"><button class="mini btn-secondary" onclick='editUser(${JSON.stringify(row)})'>编辑</button><button class="mini btn-ghost" onclick="toggleUser(${row.id}, ${!row.enabled})">${row.enabled ? '禁用' : '启用'}</button><button class="mini btn-primary" onclick="resetUserPassword(${row.id})">重置密码</button></div></article>`).join('') : renderEmpty('暂无用户');
+  renderPagination('userPagination', 'users', page, 'loadUsers');
+}
+
+async function loadLogs() {
+  if (!currentUser?.permissions.includes('user:manage')) return;
+  const lines = Number(document.getElementById('logLineCount')?.value || 200);
+  const data = await api(`/api/logs?lines=${lines}`);
+  const logLines = data.lines || [];
+  document.getElementById('logStats').innerHTML = [
+    summaryTile('日志文件', data.file || 'logs/test-process-tracker.log', '本地运行目录'),
+    summaryTile('总行数', data.totalLines || 0, '当前文件'),
+    summaryTile('已显示', logLines.length, `最近 ${lines} 行`)
+  ].join('');
+  document.getElementById('logViewer').textContent = logLines.length ? logLines.join('\n') : '暂无日志内容。';
 }
 
 async function submitPlan(e) { await submit(e, '/api/plans', loadPlans, '计划已创建'); await loadDashboard(); }
 async function submitCase(e) { await submit(e, '/api/cases', loadCases, '用例已创建'); await loadDashboard(); }
 async function submitTask(e) { await submit(e, '/api/tasks', loadTasks, '任务已分配'); await loadDashboard(); }
-async function submitDefect(e) { await submit(e, '/api/defects', loadDefects, '缺陷已提交'); await loadDashboard(); }
+async function submitDefect(e) {
+  e.preventDefault();
+  try {
+    const data = formData(e.target);
+    delete data.attachments;
+    const defect = await api('/api/defects', {method:'POST', body:JSON.stringify(data)});
+    const files = e.target.attachments?.files || [];
+    if (files.length) {
+      const form = new FormData();
+      [...files].forEach(file => form.append('files', file));
+      await api(`/api/defects/${defect.id}/attachments`, {method:'POST', body:form});
+    }
+    closeModal('defectModal');
+    e.target.reset();
+    toast(files.length ? '缺陷和附件已提交' : '缺陷已提交');
+    await loadDefects();
+    await loadDashboard();
+  } catch (error) { toast(error.message, true); }
+}
 async function submitUser(e) {
   e.preventDefault();
   const data = formData(e.target);
@@ -402,6 +459,58 @@ async function transitionDefect(id, status) {
   } catch (error) { toast(error.message, true); }
 }
 
+async function toggleAttachments(defectId, button) {
+  const box = document.getElementById(`attachments-${defectId}`);
+  if (!box) return;
+  if (!box.classList.contains('hidden')) {
+    box.classList.add('hidden');
+    return;
+  }
+  const rows = await api(`/api/defects/${defectId}/attachments`);
+  box.innerHTML = rows.length ? rows.map(renderAttachment).join('') : '<small>暂无附件</small>';
+  box.classList.remove('hidden');
+  if (button) button.textContent = `附件 ${rows.length}`;
+}
+
+function chooseDefectAttachments(defectId) {
+  document.getElementById(`attachmentInput-${defectId}`)?.click();
+}
+
+async function uploadDefectAttachments(defectId, input) {
+  const files = input.files || [];
+  if (!files.length) return;
+  try {
+    const form = new FormData();
+    [...files].forEach(file => form.append('files', file));
+    const rows = await api(`/api/defects/${defectId}/attachments`, {method:'POST', body:form});
+    input.value = '';
+    const box = document.getElementById(`attachments-${defectId}`);
+    if (box) {
+      box.innerHTML = rows.length ? rows.map(renderAttachment).join('') : '<small>暂无附件</small>';
+      box.classList.remove('hidden');
+    }
+    toast('附件已上传');
+    await loadDefects();
+  } catch (error) {
+    input.value = '';
+    toast(error.message, true);
+  }
+}
+
+function renderAttachment(row) {
+  const size = formatFileSize(row.fileSize || 0);
+  return `<a class="attachment-item" href="/api/defects/attachments/${row.id}/download" target="_blank" rel="noopener">
+    <span>${row.originalName}</span><small>${size} · ${row.uploadedBy || '未知用户'}</small>
+  </a>`;
+}
+
+function formatFileSize(bytes) {
+  const value = Number(bytes || 0);
+  if (value < 1024) return `${value} B`;
+  if (value < 1024 * 1024) return `${(value / 1024).toFixed(1)} KB`;
+  return `${(value / 1024 / 1024).toFixed(1)} MB`;
+}
+
 function editUser(row) {
   const form = document.querySelector('#userModal form');
   document.getElementById('userModalTitle').textContent = '编辑用户';
@@ -433,12 +542,60 @@ function exportReport(format) {
   window.location.href = `/api/report/export?planId=${planId}&format=${format}`;
 }
 
+function exportLogs() {
+  window.location.href = '/api/logs/export';
+}
+
 function summaryTile(label, value, helper) {
   return `<article class="summary-tile glass glass-soft"><span>${label}</span><strong>${value}</strong><small>${helper}</small></article>`;
 }
 
 function renderEmpty(message, compact=false) {
   return `<article class="item-card glass glass-soft${compact ? ' compact-empty' : ''}"><p>${message}</p></article>`;
+}
+
+function paginateRows(key, rows, signature) {
+  const state = pagination[key];
+  if (pageSignatures[key] !== signature) {
+    pageSignatures[key] = signature;
+    state.page = 1;
+  }
+  const total = rows.length;
+  const totalPages = Math.max(1, Math.ceil(total / state.size));
+  state.page = Math.min(Math.max(1, state.page), totalPages);
+  const start = (state.page - 1) * state.size;
+  return {
+    rows: rows.slice(start, start + state.size),
+    page: state.page,
+    size: state.size,
+    total,
+    totalPages,
+    from: total ? start + 1 : 0,
+    to: Math.min(start + state.size, total)
+  };
+}
+
+function renderPagination(containerId, key, page, loaderName) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  const sizes = [4, 5, 6, 10, 20];
+  container.innerHTML = `<div class="pagination-info">显示 ${page.from}-${page.to} / 共 ${page.total} 条，第 ${page.page} / ${page.totalPages} 页</div>
+    <div class="pagination-actions">
+      <select onchange="changePageSize('${key}', this.value, '${loaderName}')">${sizes.map(size => `<option value="${size}" ${size === page.size ? 'selected' : ''}>每页 ${size} 条</option>`).join('')}</select>
+      <button class="mini btn-secondary" onclick="changePage('${key}', -1, '${loaderName}')" ${page.page <= 1 ? 'disabled' : ''}>上一页</button>
+      <button class="mini btn-secondary" onclick="changePage('${key}', 1, '${loaderName}')" ${page.page >= page.totalPages ? 'disabled' : ''}>下一页</button>
+    </div>`;
+}
+
+function changePage(key, delta, loaderName) {
+  pagination[key].page += delta;
+  window[loaderName]();
+}
+
+function changePageSize(key, size, loaderName) {
+  pagination[key].size = Number(size);
+  pagination[key].page = 1;
+  window[loaderName]();
 }
 
 function caseResultTone(result) {
@@ -475,6 +632,7 @@ function switchTab(id, btn) {
   document.getElementById(id).classList.add('active');
   setActiveNav(btn);
   if (id === 'reports') loadReport();
+  if (id === 'logs') loadLogs();
 }
 
 function setActiveNav(btn) {

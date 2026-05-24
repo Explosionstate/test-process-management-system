@@ -4,6 +4,8 @@ import com.example.tracker.common.BusinessException;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -11,6 +13,7 @@ import java.util.Map;
 
 @Service
 public class AuthService {
+    private static final Logger log = LoggerFactory.getLogger(AuthService.class);
     public static final String SESSION_USER = "LOGIN_USER";
     private final JdbcTemplate jdbc;
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
@@ -20,15 +23,21 @@ public class AuthService {
     }
 
     public LoginUser login(LoginRequest request, HttpSession session) {
+        log.info("login_attempt username={}", request.username());
         Map<String, Object> user = jdbc.queryForList("select * from sys_user where username=? and enabled=1", request.username())
-                .stream().findFirst().orElseThrow(() -> new BusinessException("用户名或密码错误"));
+                .stream().findFirst().orElseThrow(() -> {
+                    log.warn("login_failed username={} reason=user_not_found_or_disabled", request.username());
+                    return new BusinessException("用户名或密码错误");
+                });
         String encoded = String.valueOf(user.get("password"));
         if (!passwordEncoder.matches(request.password(), encoded)) {
+            log.warn("login_failed username={} reason=password_mismatch", request.username());
             throw new BusinessException("用户名或密码错误");
         }
         Long userId = ((Number) user.get("id")).longValue();
         LoginUser loginUser = loadUser(userId, String.valueOf(user.get("username")), String.valueOf(user.get("real_name")));
         session.setAttribute(SESSION_USER, loginUser);
+        log.info("login_success username={} userId={} roles={}", loginUser.username(), loginUser.id(), loginUser.roles());
         return loginUser;
     }
 
@@ -43,6 +52,7 @@ public class AuthService {
     public void require(HttpSession session, String permission) {
         LoginUser user = current(session);
         if (!user.has(permission)) {
+            log.warn("permission_denied username={} permission={}", user.username(), permission);
             throw new SecurityException("缺少权限：" + permission);
         }
     }

@@ -6,6 +6,8 @@ import com.example.tracker.domain.TestPlanRequest;
 import com.example.tracker.repository.Sql;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.sql.PreparedStatement;
@@ -16,6 +18,7 @@ import java.util.Map;
 
 @Service
 public class TestPlanService {
+    private static final Logger log = LoggerFactory.getLogger(TestPlanService.class);
     private final JdbcTemplate jdbc;
 
     public TestPlanService(JdbcTemplate jdbc) {
@@ -47,17 +50,21 @@ public class TestPlanService {
             ps.setLong(8, user.id());
             return ps;
         }, keyHolder);
-        return jdbc.queryForMap("select * from test_plan where id=?", keyHolder.getKey().longValue());
+        Long id = keyHolder.getKey().longValue();
+        log.info("test_plan_created id={} name={} creator={}", id, request.name(), user.username());
+        return jdbc.queryForMap("select * from test_plan where id=?", id);
     }
 
     public void update(Long id, TestPlanRequest request) {
         jdbc.update("update test_plan set name=?, objective=?, scope_text=?, owner_id=?, status=?, start_date=?, end_date=? where id=?",
                 request.name(), request.objective(), request.scopeText(), request.ownerId(), value(request.status(), "未开始"),
                 Sql.date(request.startDate()), Sql.date(request.endDate()), id);
+        log.info("test_plan_updated id={} name={} status={}", id, request.name(), value(request.status(), "未开始"));
     }
 
     public void delete(Long id) {
         jdbc.update("delete from test_plan where id=?", id);
+        log.info("test_plan_deleted id={}", id);
     }
 
     private static String value(String value, String fallback) {

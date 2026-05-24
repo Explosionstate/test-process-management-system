@@ -69,6 +69,7 @@
         <button class="nav-item" data-title="缺陷跟踪" onclick="switchTab('defects', this)">缺陷跟踪</button>
         <button class="nav-item" data-title="测试报告" onclick="switchTab('reports', this)">测试报告</button>
         <button class="nav-item" data-title="用户权限" data-perm="user:manage" onclick="switchTab('users', this)">用户权限</button>
+        <button class="nav-item" data-title="系统日志" data-perm="user:manage" onclick="switchTab('logs', this)">系统日志</button>
       </nav>
 
       <section class="sidebar-card card-panel glass glass-soft">
@@ -175,6 +176,7 @@
               <input id="planKeywordFilter" placeholder="按计划名称或目标检索" oninput="loadPlans()">
             </div>
             <div id="planList" class="dense-list plan-grid"></div>
+            <div id="planPagination" class="pagination"></div>
           </div>
         </section>
 
@@ -203,6 +205,7 @@
               <input id="caseModuleFilter" placeholder="按模块筛选" oninput="loadCases()">
             </div>
             <div id="caseList" class="dense-list case-list"></div>
+            <div id="casePagination" class="pagination"></div>
           </div>
         </section>
 
@@ -230,6 +233,7 @@
               <input id="taskPlanFilter" placeholder="按计划检索" oninput="loadTasks()">
             </div>
             <div id="taskList" class="task-board lanes"></div>
+            <div id="taskPagination" class="pagination"></div>
           </div>
         </section>
 
@@ -263,6 +267,7 @@
               <input id="defectModule" placeholder="按模块筛选" oninput="loadDefects()">
             </div>
             <div id="defectList" class="defect-grid"></div>
+            <div id="defectPagination" class="pagination"></div>
           </div>
         </section>
 
@@ -295,6 +300,34 @@
             <button data-perm="user:manage" class="compact" onclick="openModal('userModal')">新增用户</button>
           </div>
           <div id="userList" class="list"></div>
+          <div id="userPagination" class="pagination panel-pagination"></div>
+        </section>
+
+        <section id="logs" class="panel glass glass-medium tab-panel">
+          <div class="panel-title">
+            <div><p>Logs</p><h2>系统日志</h2></div>
+            <button data-perm="user:manage" class="compact" onclick="exportLogs()">导出日志</button>
+          </div>
+          <div class="page-shell">
+            <header class="page-header">
+              <div>
+                <p class="eyebrow">Operation Audit</p>
+                <h3>查看系统访问、登录、安全审计、业务操作和异常记录。</h3>
+              </div>
+              <div id="logStats" class="summary-grid mini-summary"></div>
+            </header>
+            <div class="filters page-toolbar log-toolbar">
+              <select id="logLineCount" onchange="loadLogs()">
+                <option value="100">最近 100 行</option>
+                <option value="200" selected>最近 200 行</option>
+                <option value="500">最近 500 行</option>
+                <option value="1000">最近 1000 行</option>
+              </select>
+              <button data-perm="user:manage" class="btn-secondary compact" onclick="loadLogs()">刷新日志</button>
+              <button data-perm="user:manage" class="btn-primary compact" onclick="exportLogs()">下载 .log 文件</button>
+            </div>
+            <pre id="logViewer" class="log-viewer glass glass-soft">点击刷新日志查看最近记录。</pre>
+          </div>
         </section>
       </div>
     </section>
@@ -303,7 +336,7 @@
   <div id="planModal" class="modal"><form class="modal-card glass glass-strong" onsubmit="submitPlan(event)"><h2>创建测试计划</h2><div class="form-grid"><label>名称<input name="name" required></label><label>负责人ID<input name="ownerId" type="number" value="3"></label><label>状态<input name="status" value="进行中"></label><label>开始日期<input name="startDate" type="date"></label><label>结束日期<input name="endDate" type="date"></label><label class="wide">测试目标<textarea name="objective"></textarea></label><label class="wide">测试范围<textarea name="scopeText"></textarea></label></div><div class="modal-actions"><button class="btn-primary">保存</button><button type="button" class="btn-ghost" onclick="closeModal('planModal')">取消</button></div></form></div>
   <div id="caseModal" class="modal"><form class="modal-card glass glass-strong" onsubmit="submitCase(event)"><h2>新增测试用例</h2><div class="form-grid"><label>计划ID<input name="planId" type="number" value="1" required></label><label>模块<input name="module" required></label><label>标题<input name="title" required></label><label>执行人ID<input name="executorId" type="number" value="4"></label><label>结果<select name="result"><option>未执行</option><option>通过</option><option>失败</option><option>阻塞</option></select></label><label class="wide">步骤<textarea name="steps"></textarea></label><label class="wide">预期结果<textarea name="expected"></textarea></label><label class="wide">实际结果<textarea name="actual"></textarea></label></div><div class="modal-actions"><button class="btn-primary">保存</button><button type="button" class="btn-ghost" onclick="closeModal('caseModal')">取消</button></div></form></div>
   <div id="taskModal" class="modal"><form class="modal-card glass glass-strong" onsubmit="submitTask(event)"><h2>分配测试任务</h2><div class="form-grid"><label>计划ID<input name="planId" type="number" value="1" required></label><label>用例ID<input name="caseId" type="number"></label><label>标题<input name="title" required></label><label>负责人ID<input name="assigneeId" type="number" value="4" required></label><label>状态<input name="status" value="待处理"></label><label>截止日期<input name="dueDate" type="date"></label></div><div class="modal-actions"><button class="btn-primary">保存</button><button type="button" class="btn-ghost" onclick="closeModal('taskModal')">取消</button></div></form></div>
-  <div id="defectModal" class="modal"><form class="modal-card glass glass-strong" onsubmit="submitDefect(event)"><h2>提交缺陷</h2><div class="form-grid"><label>标题<input name="title" required></label><label>模块<input name="module" required></label><label>严重程度<select name="severity"><option>低</option><option selected>中</option><option>高</option><option>严重</option></select></label><label>优先级<select name="priority"><option>低</option><option>中</option><option selected>高</option></select></label><label>负责人ID<input name="ownerId" type="number"></label><label class="wide">复现步骤<textarea name="steps"></textarea></label><label class="wide">期望结果<textarea name="expected"></textarea></label><label class="wide">实际结果<textarea name="actual"></textarea></label></div><div class="modal-actions"><button class="btn-primary">提交</button><button type="button" class="btn-ghost" onclick="closeModal('defectModal')">取消</button></div></form></div>
+  <div id="defectModal" class="modal"><form class="modal-card glass glass-strong" onsubmit="submitDefect(event)"><h2>提交缺陷</h2><div class="form-grid"><label>标题<input name="title" required></label><label>模块<input name="module" required></label><label>严重程度<select name="severity"><option>低</option><option selected>中</option><option>高</option><option>严重</option></select></label><label>优先级<select name="priority"><option>低</option><option>中</option><option selected>高</option></select></label><label>负责人ID<input name="ownerId" type="number"></label><label>截图或附件<input name="attachments" type="file" multiple></label><label class="wide">复现步骤<textarea name="steps"></textarea></label><label class="wide">期望结果<textarea name="expected"></textarea></label><label class="wide">实际结果<textarea name="actual"></textarea></label></div><div class="modal-actions"><button class="btn-primary">提交</button><button type="button" class="btn-ghost" onclick="closeModal('defectModal')">取消</button></div></form></div>
   <div id="userModal" class="modal"><form class="modal-card glass glass-strong" onsubmit="submitUser(event)"><h2 id="userModalTitle">新增用户</h2><input name="id" type="hidden"><div class="form-grid"><label>用户名<input name="username" autocomplete="username" required></label><label>密码<input name="password" type="password" autocomplete="new-password" placeholder="新增必填，编辑可留空"></label><label>姓名<input name="realName" required></label><label>角色ID<input name="roleId" type="number" value="4"></label><label>启用状态<select name="enabled"><option value="true">启用</option><option value="false">禁用</option></select></label></div><div class="modal-actions"><button class="btn-primary">保存</button><button type="button" class="btn-ghost" onclick="closeModal('userModal')">取消</button></div></form></div>
 
   <div id="toast" class="toast"></div>

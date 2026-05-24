@@ -4,6 +4,8 @@ import com.example.tracker.common.BusinessException;
 import com.example.tracker.domain.UserRequest;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,6 +16,7 @@ import java.util.Map;
 
 @Service
 public class UserService {
+    private static final Logger log = LoggerFactory.getLogger(UserService.class);
     private final JdbcTemplate jdbc;
     private final BCryptPasswordEncoder passwordEncoder;
 
@@ -52,6 +55,7 @@ public class UserService {
         if (request.roleId() != null) {
             jdbc.update("insert into sys_user_role(user_id, role_id) values(?,?)", userId, request.roleId());
         }
+        log.info("user_created id={} username={} roleId={}", userId, request.username(), request.roleId());
         return jdbc.queryForMap("select id,username,real_name realName,enabled from sys_user where id=?", userId);
     }
 
@@ -66,10 +70,12 @@ public class UserService {
             jdbc.update("delete from sys_user_role where user_id=?", id);
             jdbc.update("insert into sys_user_role(user_id, role_id) values(?,?)", id, request.roleId());
         }
+        log.info("user_updated id={} realName={} enabled={} roleId={}", id, request.realName(), request.enabled(), request.roleId());
     }
 
     public void setEnabled(Long id, boolean enabled) {
         jdbc.update("update sys_user set enabled=? where id=?", enabled ? 1 : 0, id);
+        log.info("user_enabled_changed id={} enabled={}", id, enabled);
     }
 
     public void resetPassword(Long id, UserRequest request) {
@@ -77,5 +83,6 @@ public class UserService {
             throw new BusinessException("新密码不能为空");
         }
         jdbc.update("update sys_user set password=? where id=?", passwordEncoder.encode(request.password()), id);
+        log.info("user_password_reset id={}", id);
     }
 }

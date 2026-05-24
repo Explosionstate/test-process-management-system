@@ -5,6 +5,8 @@ import com.example.tracker.domain.TestTaskRequest;
 import com.example.tracker.repository.Sql;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.sql.PreparedStatement;
@@ -17,6 +19,7 @@ import java.util.Set;
 
 @Service
 public class TestTaskService {
+    private static final Logger log = LoggerFactory.getLogger(TestTaskService.class);
     private final JdbcTemplate jdbc;
 
     // 合法状态枚举
@@ -83,7 +86,9 @@ public class TestTaskService {
             ps.setDate(6, Sql.date(request.dueDate()));
             return ps;
         }, keyHolder);
-        return jdbc.queryForMap("select * from test_task where id=?", keyHolder.getKey().longValue());
+        Long id = keyHolder.getKey().longValue();
+        log.info("test_task_created id={} planId={} assigneeId={} status={}", id, request.planId(), request.assigneeId(), status);
+        return jdbc.queryForMap("select * from test_task where id=?", id);
     }
 
     public void updateStatus(Long id, TestTaskRequest request) {
@@ -93,6 +98,7 @@ public class TestTaskService {
             throw new BusinessException("状态值非法，可选：" + VALID_STATUSES);
         }
         jdbc.update("update test_task set status=? where id=?", status, id);
+        log.info("test_task_status_updated id={} status={}", id, status);
     }
 
     private static String emptyToNull(String value) {

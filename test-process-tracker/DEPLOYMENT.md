@@ -216,6 +216,8 @@ mvn spring-boot:run -Dspring-boot.run.arguments=--server.port=8090
 | `README.md` | 项目简介和快速启动说明 |
 | `DEPLOYMENT.md` | 部署文档 |
 | `PROJECT_LOG.md` | 项目日志、已完成清单和接口格式 |
+| `logs/test-process-tracker.log` | 运行后生成的日志文件，本地文件不提交仓库 |
+| `uploads/defects/` | 缺陷截图和附件保存目录，本地上传文件不提交仓库 |
 | `schema.sql` | 数据库建表脚本 |
 | `data.sql` | 初始化数据脚本 |
 | `upgrade-2026-05-user-report.sql` | 增量升级 SQL |
@@ -224,3 +226,25 @@ mvn spring-boot:run -Dspring-boot.run.arguments=--server.port=8090
 ## 11. 部署结论
 
 完成上述步骤后，系统即可在本地运行。系统支持登录认证、RBAC 权限控制、测试计划、测试用例、测试任务、缺陷流转、统计分析、测试报告 Word/PDF 导出和用户管理，满足课程项目演示与验收要求。
+
+## 12. 日志查看
+
+系统已内置日志记录功能。启动后可在控制台查看实时日志，也可以查看文件日志：
+
+```text
+logs/test-process-tracker.log
+```
+
+日志包含请求访问、登录认证、权限拒绝、业务操作和异常信息。`logs/` 目录已被 `.gitignore` 忽略，不会上传到 GitHub。
+
+管理员登录系统后，可进入“系统日志”页面查看最近日志，也可以点击“下载 .log 文件”导出完整日志。
+
+## 13. 缺陷附件目录
+
+系统支持在提交缺陷时上传截图或附件，文件默认保存到：
+
+```text
+uploads/defects/
+```
+
+该目录下的实际上传文件已被 `.gitignore` 忽略，不会上传到 GitHub。新部署环境需要确保应用对该目录有写入权限。

@@ -1,6 +1,7 @@
 CREATE DATABASE IF NOT EXISTS test_process_tracker DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE test_process_tracker;
 
+DROP TABLE IF EXISTS defect_attachment;
 DROP TABLE IF EXISTS defect_history;
 DROP TABLE IF EXISTS defect;
 DROP TABLE IF EXISTS test_task;
@@ -109,4 +110,17 @@ CREATE TABLE defect_history (
   operator_id BIGINT NOT NULL,
   note VARCHAR(500),
   operated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE defect_attachment (
+  id BIGINT PRIMARY KEY AUTO_INCREMENT,
+  defect_id BIGINT NOT NULL,
+  original_name VARCHAR(255) NOT NULL,
+  stored_name VARCHAR(255) NOT NULL,
+  file_path VARCHAR(500) NOT NULL,
+  content_type VARCHAR(120),
+  file_size BIGINT NOT NULL,
+  uploaded_by BIGINT NOT NULL,
+  uploaded_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_defect_attachment_defect_id (defect_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

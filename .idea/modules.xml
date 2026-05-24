@@ -2,7 +2,6 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/软件项目管理.iml" filepath="$PROJECT_DIR$/软件项目管理.iml" />
       <module fileurl="file://$PROJECT_DIR$/test-process-tracker/test-process-tracker.iml" filepath="$PROJECT_DIR$/test-process-tracker/test-process-tracker.iml" />
     </modules>
   </component>

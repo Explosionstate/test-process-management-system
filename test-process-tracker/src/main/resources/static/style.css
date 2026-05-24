@@ -1152,12 +1152,98 @@ p {
   max-width: 180px;
 }
 
+.log-toolbar select {
+  max-width: 180px;
+}
+
+.pagination {
+  align-items: center;
+  background: linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02));
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: space-between;
+  padding: 12px 14px;
+}
+
+.panel-pagination {
+  margin: 0 18px 18px;
+}
+
+.pagination-info {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.pagination-actions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.pagination-actions select {
+  max-width: 130px;
+  padding: 8px 10px;
+}
+
+.pagination-actions button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+  transform: none;
+}
+
+.attachment-list {
+  display: grid;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.attachment-item {
+  align-items: center;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  color: var(--text);
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+  padding: 10px 12px;
+  text-decoration: none;
+}
+
+.attachment-item:hover {
+  border-color: rgba(14, 165, 233, 0.36);
+  box-shadow: var(--hover-glow);
+}
+
+.attachment-item small {
+  color: var(--muted);
+}
+
 .dense-list,
 .plan-grid,
 .case-list,
 .report-layout {
   display: grid;
   gap: 14px;
+}
+
+.log-viewer {
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  color: var(--text-soft);
+  font-family: "JetBrains Mono", Consolas, monospace;
+  font-size: 12px;
+  line-height: 1.65;
+  margin: 0;
+  max-height: 560px;
+  overflow: auto;
+  padding: 18px;
+  white-space: pre-wrap;
+  word-break: break-word;
 }
 
 .plan-grid {

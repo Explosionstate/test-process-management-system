@@ -5,6 +5,8 @@ import com.lowagie.text.DocumentException;
 import com.lowagie.text.Paragraph;
 import com.lowagie.text.pdf.PdfWriter;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayOutputStream;
@@ -15,6 +17,7 @@ import java.util.Map;
 
 @Service
 public class DashboardService {
+    private static final Logger log = LoggerFactory.getLogger(DashboardService.class);
     private final JdbcTemplate jdbc;
 
     public DashboardService(JdbcTemplate jdbc) {
@@ -58,7 +61,9 @@ public class DashboardService {
                 table{border-collapse:collapse;width:100%;margin:12px 0;} th,td{border:1px solid #999;padding:8px;text-align:left;} th{background:#d9eaf7;}
                 </style></head><body>
                 """ + reportHtml(data) + "</body></html>";
-        return html.getBytes(StandardCharsets.UTF_8);
+        byte[] bytes = html.getBytes(StandardCharsets.UTF_8);
+        log.info("report_exported planId={} format=word bytes={}", planId, bytes.length);
+        return bytes;
     }
 
     public byte[] exportPdf(Long planId) {
@@ -74,7 +79,9 @@ public class DashboardService {
         } catch (DocumentException e) {
             throw new IllegalStateException("PDF 报告生成失败", e);
         }
-        return out.toByteArray();
+        byte[] bytes = out.toByteArray();
+        log.info("report_exported planId={} format=pdf bytes={}", planId, bytes.length);
+        return bytes;
     }
 
     @SuppressWarnings("unchecked")

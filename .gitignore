@@ -37,6 +37,16 @@ desktop.ini
 *.log
 logs/
 
+# Uploaded runtime files
+uploads/*
+!uploads/defects/
+uploads/defects/*
+!uploads/defects/.gitkeep
+**/uploads/*
+!**/uploads/defects/
+**/uploads/defects/*
+!**/uploads/defects/.gitkeep
+
 # Runtime / temp files
 tmp/
 temp/
